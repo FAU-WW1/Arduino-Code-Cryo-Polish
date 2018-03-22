@@ -110,199 +110,94 @@ Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 #define DKGREY    0x4A49
 
 
-#define ADJ_PIN A0 //  demo sensor for live graphing
+#define INPUT1 A0 //  demo sensor for live graphing
+#define INPUT2 A1
 
-double a1, b1, c1, d1, r2, r1, vo, tempC, tempF, tempK;
-
-
-
-// this is the only external variable used by the graph
-// it's a flat to draw the coordinate system only on the first pass
+// boolean to redraw coordinate system on new screen
 boolean display1 = true;
-boolean display2 = true;
-boolean display3 = true;
-boolean display4 = true;
-boolean display5 = true;
-boolean display6 = true;
-boolean display7 = true;
-boolean display8 = true;
-boolean display9 = true;
-double ox , oy ;
 
-boolean tft_state = true;
+double ox , oy, oy2 ; // base values for incremental line drwaing within the graph
+
+  // diagram argument list:
+  double  y, y2; // initialize x, y and y2
+  double x = 0 ;
+  double s = 0; // seconds as x values
+  double xrange = 120; // range of x values on one screen
+  double gx = 40; // x graph base location (lower left corner) relative to upper left corner of display
+  double gy = 210; // y graph base location (lower left corner) relative to upper left corner of display
+  double w = 250; // width of graph
+  double h = 200; // height of graph
+  double xcapright = s + xrange; // stores previous x bounds
+  double xcapleft = s; // stores previous x bounds, start with 0
+  double xinc = 20; // division of x axis
+  double ylo = -100; // lower bound of y axis
+  double yhi = 20; // upper bound of y axis
+  String title = "Temperatures";
+  String xlabel = "Time [s]";
+  String ylabel = "Temperature [Celsius]";
+  String yname1 = "loop"; // name for diagram legend
+  String yname2 = "specimen"; // name for diagram legend
+  unsigned int gcolor = WHITE; // graph line colors
+  unsigned int acolor = RED; // axis line color
+  unsigned int pcolor1 = GREEN; // y plot color same as legend
+  unsigned int pcolor2 = CYAN; // y2 plot color same as legend
+  unsigned int tcolor = WHITE; // text color
+  unsigned int bcolor = BLACK; // background color of digramm and text boxes
+
+  unsigned long previousMillis = 0;
+  unsigned long interval = 1000; // interval in ms for plotting and data saving on sd
 
 void setup() {
 
-  Serial.begin(9600);
-
-  pinMode(ADJ_PIN, INPUT);
+  Serial.begin(9600); // debug
+  pinMode(INPUT1, INPUT);
+  pinMode(INPUT2, INPUT);
   tft.begin();
   tft.fillScreen(BLACK);
-
-  tft.setRotation(2);
-  a1 = 3.354016E-03 ;
-  b1 = 2.569850E-04 ;
-  c1 = 2.620131E-06 ;
-  d1 = 6.383091E-08 ;
-
-
- double x, y;
-
-
   tft.setRotation(3);
 
-
-//  for (x = 0; x <= 6.3; x += .1) {
-//
-//    y = sin(x);
-//    Graph(tft, x, y, 60, 290, 390, 260, 0, 6.5, 1, -1, 1, .25, "Sin Function", "x", "sin(x)", DKBLUE, RED, YELLOW, WHITE, BLACK, display1);
-//
-//  }
-//
-//  delay(1000);
-//
-//  tft.fillScreen(BLACK);
-//  for (x = 0; x <= 6.3; x += .1) {
-//
-//    y = sin(x);
-//    Graph(tft, x, y, 100, 280, 100, 240, 0, 6.5, 3.25, -1, 1, .25, "Sin Function", "x", "sin(x)", GREY, GREEN, RED, YELLOW, BLACK, display9);
-//
-//  }
-//
-//    delay(1000);
-//
-//  tft.fillScreen(BLACK);
-//  for (x = 0; x <= 25.2; x += .1) {
-//
-//    y = sin(x);
-//    Graph(tft, x, y, 50, 190, 400, 60, 0, 25, 5, -1, 1, .5, "Sin Function", "x", "sin(x)", DKYELLOW, YELLOW, GREEN, WHITE, BLACK, display8);
-//
-//  }
-//
-//  delay(1000);
-//
-//  tft.fillScreen(BLACK);
-//  for (x = 0.001; x <= 10; x += .1) {
-//
-//    y = log(x);
-//    Graph(tft, x, y, 50, 240, 300, 180, 0, 10, 1, -10, 5, 1, "Natural Log Function", "x", "ln(x)", BLUE, RED, WHITE, WHITE, BLACK, display2);
-//
-//  }
-//
-//  
-//
-//  delay(1000);
-//  tft.fillScreen(BLACK);
-//
-//  for (x = 0; x <= 10; x += 1) {
-//
-//    y = x * x;
-//    Graph(tft, x, y, 50, 290, 390, 260, 0, 10, 1, 0, 100, 10, "Square Function", "x", "x^2", DKRED, RED, YELLOW, WHITE, BLACK, display3);
-//
-//  }
-//
-//  delay(1000);
-//  tft.fillScreen(BLACK);
-//
-//  for (x = 0.00; x <= 20; x += .01) {
-//
-//    y = ((sin(x)) * x + cos(x)) - log(x);
-//    Graph(tft, x, y, 50, 290, 390, 260, 0, 20, 1, -20, 20, 5, "Weird Function", "x", " y = sin(x) + cos(x) - log(x)", ORANGE, YELLOW, CYAN, WHITE, BLACK, display4);
-//
-//  }
-//
-//  delay(1000);
-//  tft.fillScreen(BLACK);
-//  tft.setRotation(2);
-//  for (x = 0; x <= 12.6; x += .1) {
-//
-//    y = sin(x);
-//    Graph(tft, x, y, 50, 250, 150, 150, 0, 13, 3.5, -1, 1, 1, "Sin(x)", "x", "sin(x)", DKBLUE, RED, YELLOW, WHITE, BLACK, display5);
-//
-//  }
-//  tft.setRotation(3);
-//  delay(1000);
-//  tft.fillScreen(WHITE);
-//
-//  for (x = 0; x <= 6.3; x += .05) {
-//
-//    y = cos(x);
-//    Graph(tft, x, y, 100, 250, 300, 200, 0, 6.5, 3.25, -1, 1, 1, "Cos Function", "x", "cos(x)", DKGREY, GREEN, BLUE, BLACK, WHITE, display6);
-//
-//  }
-//
-//  delay(1000);
-//  tft.fillScreen(BLACK);
-
-while(5 > 0){
-  for (x = 0; x <= 60; x += 1) {
-    y = analogRead(ADJ_PIN) / 100;
-
-
-    Graph(tft, x, y, 50, 210, 240, 170, 0, 60, 10, 0, 20, 5, "Input Voltage", " Time [s]", "Temperature [deg F]", DKBLUE, RED, GREEN, WHITE, BLACK, display7);
-    delay(250);
-  }
-
- delay(1000);
-  tft.fillScreen(BLACK);
-  Serial.println(display7);
-  display7 = true;
-  Serial.println(display7);
-  delay(3000);
 }
 
 
+void loop() {
+  // millis() returns an unsigned long, so define it wright!
+  unsigned long currentMillis = millis();
+  if(currentMillis - previousMillis >= interval){
+    previousMillis = currentMillis;
+    //x = millis(); // conversion needed from long?
+    x +=1; // rough test
 
-}
 
-
-void loop(void) {
-//  uint16_t i = millis()/1000;
-//  double y;
-//  for (i = 0; i <= 60; i += 1) {
-//    y = analogRead(ADJ_PIN) / 300;
-//
-//
-//    Graph(tft, i, y, 50, 230, 240, 170, 0, 60, 10, 70, 90, 5, "Input Voltage", " Time [s]", "Temperature [deg F]", DKBLUE, RED, GREEN, WHITE, BLACK, display7);
-//    delay(250);
-//  }
-//
-// delay(1000);
-//  tft.fillScreen(BLACK);
-}
-
-/*
-
-  function to draw a cartesian coordinate system and plot whatever data you want
-  just pass x and y and the graph will be drawn
-
-  huge arguement list
-  &d name of your display object
+  //for (x = s; x <= xcapright; x += 1) {
+    y = -analogRead(INPUT1) / 10;
+    y2 = -analogRead(INPUT2) / 10 + 1;
+    Serial.println(y);
+    Serial.println(y2);
+    
+/* remaining arguments for graph function:
+  tft = name of display object
   x = x data point
-  y = y datapont
-  gx = x graph location (lower left)
-  gy = y graph location (lower left)
-  w = width of graph
-  h = height of graph
-  xlo = lower bound of x axis
-  xhi = upper bound of x asis
-  xinc = division of x axis (distance not count)
-  ylo = lower bound of y axis
-  yhi = upper bound of y asis
-  yinc = division of y axis (distance not count)
-  title = title of graph
-  xlabel = x asis label
-  ylabel = y asis label
-  gcolor = graph line colors
-  acolor = axi ine colors
-  pcolor = color of your plotted data
-  tcolor = text color
-  bcolor = background color
-  &redraw = flag to redraw graph on fist call only
+  y = y data point
+  y2 = y2 data point
+  &redraw = flag to redraw graph on fist call only, pointer to display
 */
+    Graph(tft, x, y, y2, gx, gy, w, h, xcapleft, xcapright, 20, -100, 20, 10, title, xlabel, ylabel, yname1, yname2, gcolor, acolor, pcolor1, pcolor2, tcolor, bcolor, display1);
+    //delay(1000);
+    Serial.println(millis());
+    // improve with millis for exact seconds
+  //}
 
+   // if (x reaches xcapright redraw screen 
+  // overwrite x axis bounds for new screen labelling:
+//  s = s + xrange;
+//  xcapright = xcapright + xrange;
+//  xcapleft = xcapleft + xrange;
+//  tft.fillScreen(BLACK);
+//  display1 = true; // redraws axis for new plot on fresh screen
+  }
+}
 
-void Graph(Adafruit_ILI9341 &d, double x, double y, double gx, double gy, double w, double h, double xlo, double xhi, double xinc, double ylo, double yhi, double yinc, String title, String xlabel, String ylabel, unsigned int gcolor, unsigned int acolor, unsigned int pcolor, unsigned int tcolor, unsigned int bcolor, boolean &redraw) {
+void Graph(Adafruit_ILI9341 &d, double x, double y, double y2, double gx, double gy, double w, double h, double xlo, double xhi, double xinc, double ylo, double yhi, double yinc, String title, String xlabel, String ylabel, String yname1, String yname2, unsigned int gcolor, unsigned int acolor, unsigned int pcolor1,unsigned int pcolor2, unsigned int tcolor, unsigned int bcolor, boolean &redraw) {
 
   double ydiv, xdiv;
   // initialize old x and old y in order to draw the first point of the graph
@@ -319,6 +214,7 @@ void Graph(Adafruit_ILI9341 &d, double x, double y, double gx, double gy, double
     redraw = false;
     ox = (x - xlo) * ( w) / (xhi - xlo) + gx;
     oy = (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
+    oy2 = (y2 - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
     // draw y scale
     for ( i = ylo; i <= yhi; i += yinc) {
       // compute the transform
@@ -335,7 +231,9 @@ void Graph(Adafruit_ILI9341 &d, double x, double y, double gx, double gy, double
       d.setTextColor(tcolor, bcolor);
       d.setCursor(gx - 40, temp);
       // precision is default Arduino--this could really use some format control
-      d.println(i);
+      // round for °C here
+      d.println(int(i));
+      // d.println(i);
     }
     // draw x scale
     for (i = xlo; i <= xhi; i += xinc) {
@@ -354,25 +252,36 @@ void Graph(Adafruit_ILI9341 &d, double x, double y, double gx, double gy, double
       d.setTextColor(tcolor, bcolor);
       d.setCursor(temp, gy + 10);
       // precision is default Arduino--this could really use some format control
-      d.println(i);
+      // round for seconds here
+      d.println(int(i));
+      // d.println(i);
     }
 
     //now draw the labels
-    d.setTextSize(2);
-    d.setTextColor(tcolor, bcolor);
-    d.setCursor(gx , gy - h - 30);
-    d.println(title);
+//    d.setTextSize(2);
+//    d.setTextColor(tcolor, bcolor);
+//    d.setCursor(gx , gy - h - 30);
+//    d.println(title);
 
     d.setTextSize(1);
     d.setTextColor(acolor, bcolor);
-    d.setCursor(gx , gy + 20);
+    d.setCursor(gx + 200 , gy + 20);
     d.println(xlabel);
 
     d.setTextSize(1);
     d.setTextColor(acolor, bcolor);
-    d.setCursor(gx - 30, gy - h - 10);
+    d.setCursor(gx - 40, gy - h - 10);
     d.println(ylabel);
 
+    d.setTextSize(1);
+    d.setTextColor(pcolor1, bcolor);
+    d.setCursor(gx +150, gy - h -10);
+    d.println(yname1);
+
+    d.setTextSize(1);
+    d.setTextColor(pcolor2, bcolor);
+    d.setCursor(gx +200, gy - h -10);
+    d.println(yname2);
 
   }
 
@@ -381,19 +290,19 @@ void Graph(Adafruit_ILI9341 &d, double x, double y, double gx, double gy, double
   // recall that ox and oy are initialized as static above
   x =  (x - xlo) * ( w) / (xhi - xlo) + gx;
   y =  (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
-  d.drawLine(ox, oy, x, y, pcolor);
-  d.drawLine(ox, oy + 1, x, y + 1, pcolor);
-  d.drawLine(ox, oy - 1, x, y - 1, pcolor);
+  y2 = (y2 - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
+  d.drawLine(ox, oy, x, y, pcolor1);
+  // broadens plot line
+  //d.drawLine(ox, oy + 1, x, y + 1, pcolor1);
+  //d.drawLine(ox, oy - 1, x, y - 1, pcolor1);
+  
+  // broadens plot line
+  d.drawLine(ox, oy2, x, y2, pcolor2);
+  //d.drawLine(ox, oy2 + 1, x, y2 + 1, pcolor2);
+  //d.drawLine(ox, oy2 - 1, x, y2 - 1, pcolor2);
   ox = x;
   oy = y;
+  oy2 = y2;
 
 }
-
-/*
-  End of graphing functioin
-*/
-
-
-
-
 
