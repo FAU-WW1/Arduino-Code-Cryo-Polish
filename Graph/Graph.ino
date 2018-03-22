@@ -162,10 +162,11 @@ void setup() {
 void loop() {
   // millis() returns an unsigned long, so define it wright!
   unsigned long currentMillis = millis();
-  if(currentMillis - previousMillis >= interval){
+  if(currentMillis - previousMillis >= interval){ // maybe check for offset if other tasks take longer than a second
     previousMillis = currentMillis;
-    //x = millis(); // conversion needed from long?
+    //x = millis(); // conversion needed from long look it up
     x +=1; // rough test
+    Serial.println(millis()); // see how good it is
 
 
   //for (x = s; x <= xcapright; x += 1) {
@@ -186,14 +187,16 @@ void loop() {
     Serial.println(millis());
     // improve with millis for exact seconds
   //}
-
-   // if (x reaches xcapright redraw screen 
+  if (x == xcapright){
   // overwrite x axis bounds for new screen labelling:
-//  s = s + xrange;
-//  xcapright = xcapright + xrange;
-//  xcapleft = xcapleft + xrange;
-//  tft.fillScreen(BLACK);
-//  display1 = true; // redraws axis for new plot on fresh screen
+  //s = s + xrange;
+  
+  
+  xcapright = xcapright + xrange;
+  xcapleft = xcapleft + xrange;
+  tft.fillScreen(BLACK);
+  display1 = true; // redraws axis for new plot on fresh screen
+  }
   }
 }
 
