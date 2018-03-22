@@ -122,16 +122,17 @@ double ox , oy, oy2 ; // base values for incremental line drwaing within the gra
   double  y, y2; // initialize x, y and y2
   double x = 0 ;
   double s = 0; // seconds as x values
-  double xrange = 120; // range of x values on one screen
+  double xrange = 60; // range of x values on one screen
   double gx = 40; // x graph base location (lower left corner) relative to upper left corner of display
   double gy = 210; // y graph base location (lower left corner) relative to upper left corner of display
   double w = 250; // width of graph
   double h = 200; // height of graph
   double xcapright = s + xrange; // stores previous x bounds
   double xcapleft = s; // stores previous x bounds, start with 0
-  double xinc = 20; // division of x axis
+  double xinc = 10; // division of x axis
   double ylo = -100; // lower bound of y axis
   double yhi = 20; // upper bound of y axis
+  double yinc = 10; // division of y axis
   String title = "Temperatures";
   String xlabel = "Time [s]";
   String ylabel = "Temperature [Celsius]";
@@ -182,7 +183,7 @@ void loop() {
   y2 = y2 data point
   &redraw = flag to redraw graph on fist call only, pointer to display
 */
-    Graph(tft, x, y, y2, gx, gy, w, h, xcapleft, xcapright, 20, -100, 20, 10, title, xlabel, ylabel, yname1, yname2, gcolor, acolor, pcolor1, pcolor2, tcolor, bcolor, display1);
+    Graph(tft, x, y, y2, gx, gy, w, h, xcapleft, xcapright, xinc, ylo, yhi, yinc, title, xlabel, ylabel, yname1, yname2, gcolor, acolor, pcolor1, pcolor2, tcolor, bcolor, display1);
     //delay(1000);
     Serial.println(millis());
     // improve with millis for exact seconds
