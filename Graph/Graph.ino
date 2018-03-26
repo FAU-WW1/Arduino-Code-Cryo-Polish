@@ -138,12 +138,12 @@ double ox , oy, oy2 ; // base values for incremental line drwaing within the gra
   String ylabel = "Temperature [Celsius]";
   String yname1 = "loop"; // name for diagram legend
   String yname2 = "specimen"; // name for diagram legend
-  unsigned int gcolor = WHITE; // graph line colors
+  unsigned int gcolor = RED; // graph background color
   unsigned int acolor = RED; // axis line color
   unsigned int pcolor1 = GREEN; // y plot color same as legend
   unsigned int pcolor2 = CYAN; // y2 plot color same as legend
   unsigned int tcolor = WHITE; // text color
-  unsigned int bcolor = BLACK; // background color of digramm and text boxes
+  unsigned int bcolor = BLACK; // background color text boxes
 
   unsigned long previousMillis = 0;
   unsigned long interval = 1000; // interval in ms for plotting and data saving on sd
