@@ -1,0 +1,33 @@
+Pin Setting
+
+Arduino Uno	device
+5V
+GND
+
+A0
+A1
+A2	Resistive Touch Y+
+A3	Resistive Touch X-
+Fix I2C Pins:
+A4 (SCL)	Display 16x2
+A5 (SDA)	Display 16x2
+
+
+D0	Relais#1 circuit
+D1	Relais#2 heating glass
+D2	Resistive Touch Y-
+D3 (PWM)	Neopixel Ring
+D4	Resistive Touch X+
+
+D6	D/C TFT Display = X+ Resistive Touch
+
+SPI Chip Selects (CS):
+D7	MAX31856#1
+D8	MAX31856#2
+D9	SD Card (integrated in Display)
+D10	TFT Display
+
+Fix SPI Pins:
+D11 DI (Data In)	MAX31856#1	MAX31856#2	TFT Display	
+D12 DO (Dato Out)	MAX31856#1	MAX31856#2	TFT Display
+D13 CLK (Clock)		MAX31856#1	MAX31856#2	TFT Display
