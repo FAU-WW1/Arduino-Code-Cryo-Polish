@@ -26,7 +26,6 @@
   Arduino Uno                 device
   5V
   GND
-
   A0 demo input
   A1 demo input
   A2  Resistive Touch Y+
@@ -34,22 +33,17 @@
   Fix I2C Pins:
   A4 (SCL)  Display 16x2
   A5 (SDA)  Display 16x2
-
-
   D0  Relais#1 circuit
   D1  Relais#2 heating glass
   D2  Resistive Touch Y-
   D3 (PWM)  Neopixel Ring
   D4  Resistive Touch X+
-
   D6  D/C TFT Display = X+ Resistive Touch
-
   SPI Chip Selects (CS):
   D7  MAX31856#1
   D8  MAX31856#2
   D9  SD Card (integrated in Display)
   D10 TFT Display
-
   Fix SPI Pins:
   D11 DI (Data In)  MAX31856#1  MAX31856#2  TFT Display
   D12 DO (Dato Out) MAX31856#1  MAX31856#2  TFT Display
@@ -62,8 +56,8 @@
 // Resistive Touch:
 #define YP A2 //  Y+ touch direction, requires analog pin: "A"
 #define XM A3 //  X- touch direction, requires analog pin: "A"
-#define YM 8  // Y- can be a digital pin
-#define XP 9  // X+ can be a digital pin; equals DC!
+#define YM 8  //  Y- can be a digital pin
+#define XP 9  //  X+ can be a digital pin; equals DC!
 // LCD Touch Display:
 #define TFT_CS 10 //  SPI Chip Select Display
 #define TFT_DC 9  //  equals X+
@@ -76,7 +70,7 @@
 
 // Relais:
 #define RELAIS_PIN_GLASS 1
-#define RELAIS_PIN_CIRCUIT 0
+//#define RELAIS_PIN_CIRCUIT 0 now on push button
 
 // NeoPixel Ring:
 #define PIN 3 // PWM required
@@ -88,12 +82,11 @@
 
 
 
-
 // Object Definitions and corresponding variables ================
 
 // SD Card:
 File dataFile; // creates File Object
-long seconds = 0; //  logging interval, combine with graphing interval later!!!!!!!
+unsigned long seconds = 0; //  logging interval, combine with graphing interval later!!!!!!!
 
 // Thermoelement Breakout Board SPI Chip Selects:
 Adafruit_MAX31856 T_specimen = Adafruit_MAX31856(MAX_SPEC_CS);
@@ -113,18 +106,6 @@ byte heatsign[8] = {
   0b00110, //   **
   0b00010  //    *
 };
-byte blank[8] = {
-  0b00000, //
-  0b00000, //
-  0b00000, //
-  0b00000, //
-  0b00000, //
-  0b00000, //
-  0b00000, //
-  0b00000  //
-};
-
-
 
 // Touchscreen Definitions:
 //#define TS_MINX 150
@@ -184,24 +165,24 @@ double ox , oy, oy2 ; // base values for incremental line drawing within the gra
 
 // diagram argument list, define plot style here:
 double  y, y2; // initialize x, y and y2
-double x = 0 ;
-double s = 0; // seconds as x values
-double xrange = 60; // range of x values on one screen
-double gx = 40; // x graph base location (lower left corner) relative to upper left corner of display
-double gy = 210; // y graph base location (lower left corner) relative to upper left corner of display
-double w = 250; // width of graph
-double h = 200; // height of graph
-double xcapright = s + xrange; // stores previous x bounds
-double xcapleft = s; // stores previous x bounds, start with 0
-double xinc = 10; // division of x axis
-double ylo = -100; // lower bound of y axis
-double yhi = 20; // upper bound of y axis
-double yinc = 10; // division of y axis
+int x = 0 ;
+int s = 0; // seconds as x values combine with long from logging sd card
+int xrange = 60; // range of x values on one screen
+int gx = 40; // x graph base location (lower left corner) relative to upper left corner of display
+int gy = 210; // y graph base location (lower left corner) relative to upper left corner of display
+int w = 250; // width of graph
+int h = 200; // height of graph
+int xcapright = s + xrange; // stores previous x bounds
+int xcapleft = s; // stores previous x bounds, start with 0
+int xinc = 10; // division of x axis
+int ylo = -100; // lower bound of y axis
+int yhi = 20; // upper bound of y axis
+int yinc = 10; // division of y axis
 String title = "Temperatures";
 String xlabel = "Time [s]";
 String ylabel = "Temperature [Celsius]";
-String yname1 = "loop"; // name for diagram legend
-String yname2 = "specimen"; // name for diagram legend
+String yname1 = "loop"; // data name  1 for diagram legend
+String yname2 = "specimen"; // data name 2 for diagram legend
 unsigned int gcolor = RED; // graph background color
 unsigned int acolor = RED; // axis line color
 unsigned int pcolor1 = GREEN; // y plot color same as legend
@@ -224,33 +205,44 @@ Adafruit_NeoPixel ring = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800
 
 // Setup =======================================================================
 void setup() {
+  // LCD Touch Display:
+  tft.begin();
+  tft.fillScreen(BLACK);
+  tft.setRotation(3); //  horizontal with SPI pins on the left
+  
   // Open serial communications and wait for port to open:
   Serial.begin(9600);
   while (!Serial) {
     ; // wait for serial port to connect. Needed for native USB port only
   }
-  Serial.print("Initializing SD card...");
-
   // see if the card is present and can be initialized:
   if (!SD.begin(CARD_CS)) {
-    Serial.println("Card failed, or not present");
+    tft.setTextSize(2);
+    tft.setTextColor(RED, BLACK);
+    tft.setCursor(100, 100);
+    tft.println("Card failed");
+    //Serial.println("Card failed, or not present");
     // don't do anything more:
     while (1);
   }
-  Serial.println("card initialized.");
-  // print messages to tft too !!!!!!!!!!!!!!!!!!
+  tft.setTextSize(2);
+  tft.setTextColor(GREEN, BLACK);
+  tft.setCursor(100, 100);
+  tft.println("Card initialized");
+  delay(1000);
+  tft.fillScreen(BLACK);
 
   // I/O Pin Definitions:
   // Demo Sensors, replace with MAX values!!!!!!!!!!
-  pinMode(INPUT1, INPUT);
-  pinMode(INPUT2, INPUT);
+ // pinMode(INPUT1, INPUT);
+ // pinMode(INPUT2, INPUT);
   pinMode(RELAIS_PIN_GLASS, OUTPUT);
-  pinMode(RELAIS_PIN_CIRCUIT, OUTPUT);
+//  pinMode(RELAIS_PIN_CIRCUIT, OUTPUT);
 
   // Neopixel Ring:
   ring.begin(); // initializes NeoPixel
   ring.show();  // sets all pixel to off at start
-  startup_demo(); // small startup demo to show connection
+//  startup_demo(); // small startup demo to show connection
 
   // LCD Shield with Buttons:
   lcd.begin(16, 2);
@@ -263,26 +255,10 @@ void setup() {
   T_loop.begin();
   T_specimen.setThermocoupleType(MAX31856_TCTYPE_K);
   T_loop.setThermocoupleType(MAX31856_TCTYPE_K);
-
-  // LCD Touch Display:
-  tft.begin();
-  tft.fillScreen(BLACK);
-  tft.setRotation(3); //  horizontal with SPI pins on the left
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
 }
+
+
 // Loop ========================================================================
 void loop() {
 
@@ -317,11 +293,11 @@ void loop() {
     dataFile.println(dataString);
     dataFile.close();
     // print to the serial port too:
-    Serial.println(dataString);
+    //Serial.println(dataString);
   }
   // if the file isn't open, pop up an error:
   else {
-    Serial.println("error opening file");
+    //Serial.println("error opening file");
   }
 
 
@@ -333,14 +309,14 @@ void loop() {
     previousMillis = currentMillis;
     //x = millis(); // conversion needed from long look it up
     x += 1; // rough test
-    Serial.println(millis()); // see how good it is
+    //Serial.println(millis()); // see how good it is
 
 
     //for (x = s; x <= xcapright; x += 1) {
     y = -analogRead(INPUT1) / 10;
     y2 = -analogRead(INPUT2) / 10 + 1;
-    Serial.println(y);
-    Serial.println(y2);
+    //Serial.println(y);
+    //Serial.println(y2);
 
     /* remaining arguments for graph function:
       tft = name of display object
@@ -351,7 +327,7 @@ void loop() {
     */
     Graph(tft, x, y, y2, gx, gy, w, h, xcapleft, xcapright, xinc, ylo, yhi, yinc, title, xlabel, ylabel, yname1, yname2, gcolor, acolor, pcolor1, pcolor2, tcolor, bcolor, display1);
     //delay(1000);
-    Serial.println(millis());
+    //Serial.println(millis());
     // improve with millis for exact seconds
     //}
     if (x == xcapright) {
@@ -379,7 +355,7 @@ void loop() {
   int delta = millis() - time;
   lcd.print(T_loop.readThermocoupleTemperature(), 1); //  one digit for float number
 
-  Serial.println(delta);
+  //Serial.println(delta);
 
   uint8_t buttons = lcd.readButtons();  // value for specific button see .h file
   if (buttons) {
@@ -406,7 +382,7 @@ void loop() {
       }
     }
     if (buttons & BUTTON_LEFT) {  // hold button closing circuit
-      digitalWrite(RELAIS_PIN_CIRCUIT, HIGH);
+     // digitalWrite(RELAIS_PIN_CIRCUIT, HIGH);
     }
     if (buttons & BUTTON_UP) {  // switch on leds
       led_on();
@@ -426,7 +402,7 @@ void loop() {
     }
   }
   else {  // open cirucit if left button is no longer pressed
-    digitalWrite(RELAIS_PIN_CIRCUIT, LOW);
+   // digitalWrite(RELAIS_PIN_CIRCUIT, LOW);
   }
 
 
@@ -444,7 +420,7 @@ void loop() {
 
 // Functions ============================================================
 // Graph Plotting
-void Graph(Adafruit_ILI9341 &d, double x, double y, double y2, double gx, double gy, double w, double h, double xlo, double xhi, double xinc, double ylo, double yhi, double yinc, String title, String xlabel, String ylabel, String yname1, String yname2, unsigned int gcolor, unsigned int acolor, unsigned int pcolor1, unsigned int pcolor2, unsigned int tcolor, unsigned int bcolor, boolean &redraw) {
+void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int w, int h, int xlo, int xhi, int xinc, int ylo, int yhi, int yinc, String title, String xlabel, String ylabel, String yname1, String yname2, unsigned int gcolor, unsigned int acolor, unsigned int pcolor1, unsigned int pcolor2, unsigned int tcolor, unsigned int bcolor, boolean &redraw) {
 
   double ydiv, xdiv;
   // initialize old x and old y in order to draw the first point of the graph
@@ -565,6 +541,8 @@ void led_off() {
     ring.show();  // send data to pixels
   }
 }
+
+/*
 void startup_demo() { // small startup demo to show connection
   for (uint8_t i = 0; i < NUMPIXELS; i++) {
     ring.setPixelColor(i, ring.Color(0, 0, 0, 255));
@@ -576,3 +554,5 @@ void startup_demo() { // small startup demo to show connection
     ring.show();  // send data to pixels
   }
 }
+*/
+
