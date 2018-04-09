@@ -26,8 +26,8 @@
   Arduino Uno                 device
   5V
   GND
-  A0 demo input
-  A1 demo input
+  A0 
+  A1
   A2  Resistive Touch Y+
   A3  Resistive Touch X-
   Fix I2C Pins:
@@ -48,10 +48,12 @@
   D11 DI (Data In)  MAX31856#1  MAX31856#2  TFT Display
   D12 DO (Dato Out) MAX31856#1  MAX31856#2  TFT Display
   D13 CLK (Clock)   MAX31856#1  MAX31856#2  TFT Display
+  
+  Fixed SPI Pins for Uno Boards:
+  DI(Data in on devices)/MOSI = 11
+  DO(Data out on devices)/MISO = 12
+  CLK(clock) = 13
 */
-
-#define INPUT1 A0 //  demo sensor for live graphing
-#define INPUT2 A1
 
 // Resistive Touch:
 #define YP A2 //  Y+ touch direction, requires analog pin: "A"
@@ -70,27 +72,26 @@
 
 // Relais:
 #define RELAIS_PIN_GLASS 1
-//#define RELAIS_PIN_CIRCUIT 0 now on push button
 
 // NeoPixel Ring:
 #define PIN 3 // PWM required
-
-// Fixed SPI Pins for Uno Boards:
-// DI(Data in on devices)/MOSI = 11
-// DO(Data out on devices)/MISO = 12
-// CLK(clock) = 13
 
 
 
 // Object Definitions and corresponding variables ================
 
-// SD Card:
+// SD Card for Data Logging:
 File dataFile; // creates File Object
-unsigned long seconds = 0; //  logging interval, combine with graphing interval later!!!!!!!
+bool log_active = false; // begin and end logging with specific buttons
+unsigned long currentMillis = 0; // time variables for logging and or graphing
+unsigned long previousMillis = 0;
+unsigned long interval = 1000; // interval in ms for plotting and data saving on sd
 
 // Thermoelement Breakout Board SPI Chip Selects:
 Adafruit_MAX31856 T_specimen = Adafruit_MAX31856(MAX_SPEC_CS);
 Adafruit_MAX31856 T_loop = Adafruit_MAX31856(MAX_LOOP_CS);
+double current_T_loop;
+double current_T_specimen;
 
 // LCD  Button Shield:
 // uses I2C with fixed Pins SCL = A4 and SDA = A5
@@ -104,7 +105,7 @@ byte heatsign[8] = {
   0b01100, //  **
   0b01100, //  **
   0b00110, //   **
-  0b00010  //    *
+  0b11111  // *****
 };
 
 // Touchscreen Definitions:
@@ -165,15 +166,17 @@ double ox , oy, oy2 ; // base values for incremental line drawing within the gra
 
 // diagram argument list, define plot style here:
 double  y, y2; // initialize x, y and y2
-int x = 0 ;
-int s = 0; // seconds as x values combine with long from logging sd card
+int x = 0 ; // seconds as x values combine with long from logging sd card
+//int s = 0; 
 int xrange = 60; // range of x values on one screen
 int gx = 40; // x graph base location (lower left corner) relative to upper left corner of display
 int gy = 210; // y graph base location (lower left corner) relative to upper left corner of display
 int w = 250; // width of graph
 int h = 200; // height of graph
-int xcapright = s + xrange; // stores previous x bounds
-int xcapleft = s; // stores previous x bounds, start with 0
+int xcapright = x + xrange; // stores previous x bounds
+//int xcapright = s + xrange; // stores previous x bounds
+int xcapleft = x; // stores previous x bounds, start with 0
+//int xcapleft = s; // stores previous x bounds, start with 0
 int xinc = 10; // division of x axis
 int ylo = -100; // lower bound of y axis
 int yhi = 20; // upper bound of y axis
@@ -189,10 +192,6 @@ unsigned int pcolor1 = GREEN; // y plot color same as legend
 unsigned int pcolor2 = CYAN; // y2 plot color same as legend
 unsigned int tcolor = WHITE; // text color
 unsigned int bcolor = BLACK; // background color text boxes
-
-// Data Logging SD Card:
-unsigned long previousMillis = 0;
-unsigned long interval = 1000; // interval in ms for plotting and data saving on sd
 
 // Relais:
 bool heating_glass_active = false;
@@ -255,6 +254,7 @@ void setup() {
   T_loop.begin();
   T_specimen.setThermocoupleType(MAX31856_TCTYPE_K);
   T_loop.setThermocoupleType(MAX31856_TCTYPE_K);
+
   
 }
 
@@ -262,59 +262,97 @@ void setup() {
 // Loop ========================================================================
 void loop() {
 
-  // SD Logging:
-  // make a string for assembling the data to log, overwrite it with each loop
-  String dataString = "";
-  dataString += String(seconds);
-  dataString += ",";
-  dataString += String(analogRead(INPUT1));
-  dataString += ",";
-  dataString += String(analogRead(INPUT2));
+  // Button Interface:
+  uint8_t buttons = lcd.readButtons();  // value for specific button see .h file
+  if (buttons) {
+    lcd.setCursor(0, 0);
 
-  seconds ++;
-  //  // read three sensors and append to the string:
-  //  for (int analogPin = 0; analogPin < 3; analogPin++) {
-  //    int sensor = analogRead(analogPin);
-  //    dataString += String(sensor);
-  //    if (analogPin < 2) {
-  //      dataString += ",";
-  //    }
-  //  }
-
-  // automatic filenames see example scetch sdfat lib
-
-  // open the file. note that only one file can be open at a time,
-  // so you have to close this one before opening another.
-  // open creates new file or opens a prexisiting one
-  dataFile = SD.open("test.txt", FILE_WRITE); // argument FILE_WRITE makes it writable and readable
-
-  // if the file is available, write to it:
-  if (dataFile) {
-    dataFile.println(dataString);
-    dataFile.close();
-    // print to the serial port too:
-    //Serial.println(dataString);
+    if (buttons & BUTTON_SELECT) {  // switch button
+      heating_glass_active = !heating_glass_active; // invert boolean
+      if (heating_glass_active == true) {
+        digitalWrite(RELAIS_PIN_GLASS, HIGH);
+        lcd.print("heating on");
+        delay(500);  // delay for user visibility
+        lcd.clear();  // remove letters again with complete wipe
+        lcd.setCursor(14, 0);
+        lcd.write(byte(0));
+        lcd.setCursor(15, 0);
+        lcd.write(byte(0));
+      }
+      if (heating_glass_active == false) {
+        digitalWrite(RELAIS_PIN_GLASS, LOW);
+        lcd.print("heating off");
+        delay(500);  // delay for user visibility
+        lcd.clear();  // remove heat signs again with whole wipe
+      }
+    }
+    if (buttons & BUTTON_LEFT) {  // start logging
+      log_active = true;
+      tft.fillScreen(BLACK);
+      display1 = true; // redraw and create new graph at start of logging
+      // set time and time borders back to start: x s xcapright xcapleft
+      x = 0;
+      xcapleft = x;
+      xcapright = x + xrange;
+      lcd.print("logging       ");
+      delay(500);  // delay for user visibility
+      lcd.setCursor(0, 0); // remove message
+      lcd.print("       ");
+    }
+    if (buttons & BUTTON_RIGHT) {  // stop logging
+      log_active = false;
+      lcd.print("logging end   ");
+      delay(500);  // delay for user visibility
+      lcd.setCursor(0, 0); // remove message
+      lcd.print("           ");
+    }
+    if (buttons & BUTTON_UP) {  // switch on leds
+      led_on();
+      lcd.print("led on        ");
+      delay(500);  // delay for user visibility
+      lcd.setCursor(0, 0); // remove message
+      lcd.print("      ");
+    }
+    if (buttons & BUTTON_DOWN) {  // switch off leds
+      led_off();
+      lcd.print("led off       ");
+      delay(500);  // delay for user visibility
+      lcd.setCursor(0, 0); // remove message
+      lcd.print("       ");
+    }
   }
-  // if the file isn't open, pop up an error:
-  else {
-    //Serial.println("error opening file");
-  }
 
 
+// Perform logging and or graphing every given interval e.g.each second
+// keep on graphing every second no matter what, refresh screen and begin with 0s when logging starts see button section
+// start logging only when selected
 
-  // Graph plotting:
-  // millis() returns an unsigned long, so define it wright!
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillis >= interval) { // maybe check for offset if other tasks take longer than a second
-    previousMillis = currentMillis;
-    //x = millis(); // conversion needed from long look it up
-    x += 1; // rough test
-    //Serial.println(millis()); // see how good it is
+  
+  currentMillis = millis(); // millis() returns an unsigned long!
+  if (currentMillis - previousMillis >= interval) {
+    unsigned long t_offset = currentMillis - previousMillis; // check for time offset if other tasks take too long to execute
+    Serial.println(t_offset);
+    previousMillis = currentMillis; // immedeately overwrite variable
+    // for small enough t_offset just add 1 to time variable, this also allows to start from 0s at logging start
+    x += interval/1000; // rough method
+    
+    // permanent graphing on touch and displaying current temp on lcd at given interval
+    // read each thermocouple just once due to conversion times and use variable for later actions, overwrite within each interval
+    current_T_loop = T_loop.readThermocoupleTemperature();
+    current_T_specimen = T_specimen.readThermocoupleTemperature();
 
+    // lcd display with current temperatures:
+    // set the cursor to column 0, line 1; note: line 1 is the second row, since counting begins with 0:
+    lcd.setCursor(0, 0);
+    lcd.print("spec ");
+    lcd.print(current_T_specimen, 1); //  one digit float number
+    lcd.setCursor(0, 1);
+    lcd.print("loop ");
+    lcd.print(current_T_loop, 1); //  one digit float number
 
-    //for (x = s; x <= xcapright; x += 1) {
-    y = -analogRead(INPUT1) / 10;
-    y2 = -analogRead(INPUT2) / 10 + 1;
+    // Graph plotting on touch display:
+    y = current_T_loop;
+    y2 = current_T_specimen;
     //Serial.println(y);
     //Serial.println(y2);
 
@@ -326,97 +364,48 @@ void loop() {
       &redraw = flag to redraw graph on fist call only, pointer to display
     */
     Graph(tft, x, y, y2, gx, gy, w, h, xcapleft, xcapright, xinc, ylo, yhi, yinc, title, xlabel, ylabel, yname1, yname2, gcolor, acolor, pcolor1, pcolor2, tcolor, bcolor, display1);
-    //delay(1000);
-    //Serial.println(millis());
-    // improve with millis for exact seconds
-    //}
-    if (x == xcapright) {
-      // overwrite x axis bounds for new screen labelling:
+
+    if (x == xcapright) { // overwrite x axis bounds for new screen labelling:
       //s = s + xrange;
       xcapright = xcapright + xrange;
       xcapleft = xcapleft + xrange;
       tft.fillScreen(BLACK);
       display1 = true; // redraws axis for new plot on fresh screen
     }
-  }
 
+    // SD Logging:  
+    if (log_active == true) {
+      // make a string for assembling the data to log, overwrite String with each loop
+      String dataString = "";
+      dataString += String(x); // x stores current seconds
+      dataString += ",";
+      dataString += String(current_T_specimen);
+      dataString += ",";
+      dataString += String(current_T_loop);
 
-  // Button Interface:
-  // set the cursor to column 0, line 1
-  // (note: line 1 is the second row, since counting begins with 0):
-  lcd.setCursor(0, 0);
-  lcd.print("spec ");
-  lcd.print(T_specimen.readThermocoupleTemperature(), 1); //  one digit for float number
-
-  lcd.setCursor(0, 1);
-  lcd.print("loop ");
-  int time = millis();
-  float temp_test = T_loop.readThermocoupleTemperature();
-  int delta = millis() - time;
-  lcd.print(T_loop.readThermocoupleTemperature(), 1); //  one digit for float number
-
-  //Serial.println(delta);
-
-  uint8_t buttons = lcd.readButtons();  // value for specific button see .h file
-  if (buttons) {
-    //lcd.clear();
-    lcd.setCursor(0, 0);
-
-    if (buttons & BUTTON_SELECT) {  // switch button
-      heating_glass_active = !heating_glass_active; // invert booelan
-      if (heating_glass_active == true) {
-        digitalWrite(RELAIS_PIN_GLASS, HIGH);
-        lcd.print("heating on");
-        delay(500);  // delay for user visibility
-        lcd.clear();  // remove letters again with whole whipe
-        lcd.setCursor(14, 0);
-        lcd.write(byte(0));
-        lcd.setCursor(15, 0);
-        lcd.write(byte(0));
+      // automatic filenames see example scetch sdfat lib
+    
+      // open the file. note that only one file can be open at a time,
+      // so you have to close this one before opening another.
+      // open creates new file or opens a prexisiting one
+      dataFile = SD.open("test.txt", FILE_WRITE); // argument FILE_WRITE makes it writable and readable
+    
+      // if the file is available, write to it:
+      if (dataFile) {
+        dataFile.println(dataString);
+        dataFile.close();
+        // print to the serial port too:
+        //Serial.println(dataString);
       }
-      if (heating_glass_active == false) {
-        digitalWrite(RELAIS_PIN_GLASS, LOW);
-        lcd.print("heating off");
-        delay(500);  // delay for user visibility
-        lcd.clear();  // remove letters again with whole wipe
+      // if the file isn't open, pop up an error:
+      else {
+        //Serial.println("error opening file");
       }
     }
-    if (buttons & BUTTON_LEFT) {  // hold button closing circuit
-     // digitalWrite(RELAIS_PIN_CIRCUIT, HIGH);
-    }
-    if (buttons & BUTTON_UP) {  // switch on leds
-      led_on();
-      lcd.print("led on        ");
-      delay(500);  // delay for user visibility
-      //lcd.clear(); // erase letters before showing temp again
-      lcd.setCursor(0, 0);
-      lcd.print("      ");
-    }
-    if (buttons & BUTTON_DOWN) {  // switch off leds
-      led_off();
-      lcd.print("led off       ");
-      delay(500);  // delay for user visibility
-      //lcd.clear(); // erase letters before showing temp again
-      lcd.setCursor(0, 0);
-      lcd.print("       ");
-    }
   }
-  else {  // open cirucit if left button is no longer pressed
-   // digitalWrite(RELAIS_PIN_CIRCUIT, LOW);
-  }
-
-
-
-
-
-
-
-
-
-
-
-
 }
+    
+
 
 // Functions ============================================================
 // Graph Plotting
