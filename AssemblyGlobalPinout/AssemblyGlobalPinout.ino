@@ -3,7 +3,9 @@
 //#include <SPI.h>
 
 // SD Lib:
-#include <SD.h>
+//#include <SD.h>
+#include <SPI.h>
+#include "SdFat.h"
 
 // Thermoelement Breakout Board:
 #include <Adafruit_MAX31856.h>
@@ -64,6 +66,8 @@
 #define TFT_CS 10 //  SPI Chip Select Display
 #define TFT_DC 9  //  equals X+
 //#define TFT_RST 8 // RST can be set to -1 if you tie it to Arduino's reset
+
+// CHANGE BACK TO 9 AFTER TESTING !!!!!!!!!!!!!!!!
 #define CARD_CS 7 // SPI Chip Select integrated SD card
 
 // Thermoelement Breakout Board:
@@ -81,7 +85,13 @@
 // Object Definitions and corresponding variables ================
 
 // SD Card for Data Logging:
-File dataFile; // creates File Object
+
+SdFat SD;
+// create File Object
+File dataFile;
+
+
+
 bool log_active = false; // begin and end logging with specific buttons
 unsigned long currentMillis = 0; // time variables for logging and or graphing
 unsigned long previousMillis = 0;
@@ -215,7 +225,7 @@ void setup() {
     ; // wait for serial port to connect. Needed for native USB port only
   }
   // see if the card is present and can be initialized:
-  if (!SD.begin(CARD_CS)) {
+    if (!SD.begin(CARD_CS)) {
     tft.setTextSize(2);
     tft.setTextColor(RED, BLACK);
     tft.setCursor(100, 100);
@@ -389,7 +399,6 @@ void loop() {
       // so you have to close this one before opening another.
       // open creates new file or opens a prexisiting one
       dataFile = SD.open("test.txt", FILE_WRITE); // argument FILE_WRITE makes it writable and readable
-    
       // if the file is available, write to it:
       if (dataFile) {
         dataFile.println(dataString);
