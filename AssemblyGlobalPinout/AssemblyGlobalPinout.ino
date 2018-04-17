@@ -24,61 +24,56 @@
 
 // Global Pinout =========================
 /*
-  Pin Setting for Wiring
-  Arduino Uno                 device
+  Pin Setting for Wiring Mega 2560
+  Arduino MEGA                 device
   5V
   GND
-  A0 
-  A1
-  A2  Resistive Touch Y+
-  A3  Resistive Touch X-
+  A0  Resistive Touch Y+
+  A1  Resistive Touch X-
+  A2  Resistive Touch Y-
+  A3  Resistive Touch X+ & D/C TFT Display
   Fix I2C Pins:
-  A4 (SCL)  Display 16x2
-  A5 (SDA)  Display 16x2
-  D0  Relais#1 circuit
-  D1  Relais#2 heating glass
-  D2  Resistive Touch Y-
-  D3 (PWM)  Neopixel Ring
-  D4  Resistive Touch X+
-  D6  D/C TFT Display = X+ Resistive Touch
-  SPI Chip Selects (CS):
-  D7  MAX31856#1
-  D8  MAX31856#2
-  D9  SD Card (integrated in Display)
-  D10 TFT Display
-  Fix SPI Pins:
-  D11 DI (Data In)  MAX31856#1  MAX31856#2  TFT Display
-  D12 DO (Dato Out) MAX31856#1  MAX31856#2  TFT Display
-  D13 CLK (Clock)   MAX31856#1  MAX31856#2  TFT Display
+  21 (SCL)  Display 16x2
+  20 (SDA)  Display 16x2
+  D36  Relais#2 heating glass
+  D8 (PWM)  Neopixel Ring
   
-  Fixed SPI Pins for Uno Boards:
-  DI(Data in on devices)/MOSI = 11
-  DO(Data out on devices)/MISO = 12
-  CLK(clock) = 13
+  SPI Chip Selects (CS):
+  D31  MAX31856#1
+  D35  MAX31856#2
+  D39  SD Card (integrated in Display)
+  D43 TFT Display
+  
+  Fix SPI Pins for Mega Boards:
+  SPI Device: MAX31856#1  MAX31856#2  TFT Display  SD Card
+  DI(Data in on devices)/MOSI = 51
+  DO(Data out on devices)/MISO = 50
+  CLK(Clock) = 52
+  
 */
 
 // Resistive Touch:
-#define YP A2 //  Y+ touch direction, requires analog pin: "A"
-#define XM A3 //  X- touch direction, requires analog pin: "A"
-#define YM 8  //  Y- can be a digital pin
-#define XP 9  //  X+ can be a digital pin; equals DC!
+#define YP A0 //  Y+ touch direction, requires analog pin: "A"
+#define XM A1 //  X- touch direction, requires analog pin: "A"
+#define YM A2  //  Y- can be a digital pin
+#define XP A3  //  X+ can be a digital pin; equals DC!
 // LCD Touch Display:
-#define TFT_CS 10 //  SPI Chip Select Display
-#define TFT_DC 9  //  equals X+
+#define TFT_CS 43 //  SPI Chip Select Display
+#define TFT_DC 41  //  equals X+!
 //#define TFT_RST 8 // RST can be set to -1 if you tie it to Arduino's reset
 
 // CHANGE BACK TO 9 AFTER TESTING !!!!!!!!!!!!!!!!
-#define CARD_CS 7 // SPI Chip Select integrated SD card
+#define CARD_CS 39 // SPI Chip Select integrated SD card
 
 // Thermoelement Breakout Board:
-#define MAX_SPEC_CS 7
-#define MAX_LOOP_CS 8
+#define MAX_SPEC_CS 31
+#define MAX_LOOP_CS 35
 
 // Relais:
-#define RELAIS_PIN_GLASS 1
+#define RELAIS_PIN_GLASS 36
 
 // NeoPixel Ring:
-#define PIN 3 // PWM required
+#define PIN 8 // PWM required
 
 
 
@@ -402,7 +397,7 @@ void loop() {
       // if the file is available, write to it:
       if (dataFile) {
         dataFile.println(dataString);
-        dataFile.close();
+        dataFile.close(); // always close file at the end
         // print to the serial port too:
         //Serial.println(dataString);
       }
