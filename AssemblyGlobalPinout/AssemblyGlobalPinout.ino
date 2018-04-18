@@ -56,13 +56,11 @@
 #define YP A0 //  Y+ touch direction, requires analog pin: "A"
 #define XM A1 //  X- touch direction, requires analog pin: "A"
 #define YM A2  //  Y- can be a digital pin
-#define XP A3  //  X+ can be a digital pin; equals DC!
+#define XP A3  //  X+ can be a digital pin; equals DC, connect both to given pin!
 // LCD Touch Display:
 #define TFT_CS 43 //  SPI Chip Select Display
-#define TFT_DC 41  //  equals X+!
+#define TFT_DC A3  //  equals X+, connect both to given pin
 //#define TFT_RST 8 // RST can be set to -1 if you tie it to Arduino's reset
-
-// CHANGE BACK TO 9 AFTER TESTING !!!!!!!!!!!!!!!!
 #define CARD_CS 39 // SPI Chip Select integrated SD card
 
 // Thermoelement Breakout Board:
@@ -334,8 +332,10 @@ void loop() {
 
   
   currentMillis = millis(); // millis() returns an unsigned long!
-  if (currentMillis - previousMillis >= interval) {
-    unsigned long t_offset = currentMillis - previousMillis; // check for time offset if other tasks take too long to execute
+    if (currentMillis - previousMillis >= interval) {
+    //  currentMillis = millis();
+    unsigned long t_offset = currentMillis - previousMillis - interval; // check for time offset if other tasks take too long to execute
+    Serial.println("time offset from interval in ms");
     Serial.println(t_offset);
     previousMillis = currentMillis; // immedeately overwrite variable
     // for small enough t_offset just add 1 to time variable, this also allows to start from 0s at logging start
