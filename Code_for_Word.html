@@ -1,0 +1,489 @@
+<pre>
+<font color="#434f54">&#47;&#47; Libraries ============================</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#d35400">Wire</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> <font color="#434f54">&#47;&#47; &nbsp;&nbsp;&nbsp;</font>
+
+<font color="#434f54">&#47;&#47; SD Lib:</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><b><font color="#d35400">SPI</font></b><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
+<font color="#5e6d03">#include</font> <font color="#005c5f">&#34;SdFat.h&#34;</font>
+
+<font color="#434f54">&#47;&#47; Thermoelement Breakout Board:</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_MAX31856</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
+
+<font color="#434f54">&#47;&#47; LCD Shield with Buttons:</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_RGBLCDShield</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">utility</font><font color="#434f54">&#47;</font><font color="#000000">Adafruit_MCP23017</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
+
+<font color="#434f54">&#47;&#47; LCD Touchscreen Breakout Board:</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_GFX</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> <font color="#434f54">&#47;&#47; &nbsp;Core graphics library</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_ILI9341</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; Driver chip display</font>
+<font color="#5e6d03">#include</font> <font color="#005c5f">&#34;TouchScreen.h&#34;</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;Resistive Touch Screen</font>
+
+<font color="#434f54">&#47;&#47; NeoPixel Ring:</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><b><font color="#d35400">Adafruit_NeoPixel</font></b><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
+
+<font color="#434f54">&#47;&#47; Global Pinout =========================</font>
+<font color="#95a5a6">&#47;*</font>
+<font color="#95a5a6"> &nbsp;Pin Setting for Wiring Mega 2560:</font>
+<font color="#95a5a6"> &nbsp;A0 &nbsp;Resistive Touch Y+</font>
+<font color="#95a5a6"> &nbsp;A1 &nbsp;Resistive Touch X-</font>
+<font color="#95a5a6"> &nbsp;A2 &nbsp;Resistive Touch Y-</font>
+<font color="#95a5a6"> &nbsp;A3 &nbsp;Resistive Touch X+ &amp; D&#47;C TFT Display</font>
+<font color="#95a5a6"> &nbsp;Fix I2C Pins:</font>
+<font color="#95a5a6"> &nbsp;21 (SCL) &nbsp;Display 16x2</font>
+<font color="#95a5a6"> &nbsp;20 (SDA) &nbsp;Display 16x2</font>
+<font color="#95a5a6"> &nbsp;D36 &nbsp;Relais heating glass</font>
+<font color="#95a5a6"> &nbsp;D8 (PWM) &nbsp;Neopixel Ring</font>
+<font color="#95a5a6"> &nbsp;</font>
+<font color="#95a5a6"> &nbsp;SPI Chip Selects (CS):</font>
+<font color="#95a5a6"> &nbsp;D31 &nbsp;MAX31856#1 Specimen</font>
+<font color="#95a5a6"> &nbsp;D35 &nbsp;MAX31856#2 Loop</font>
+<font color="#95a5a6"> &nbsp;D39 &nbsp;SD Card (integrated in Touch Display)</font>
+<font color="#95a5a6"> &nbsp;D43 TFT Display</font>
+<font color="#95a5a6"> &nbsp;</font>
+<font color="#95a5a6"> &nbsp;Fix SPI Pins for Mega Boards:</font>
+<font color="#95a5a6"> &nbsp;SPI Devices: MAX31856#1 &nbsp;MAX31856#2 &nbsp;TFT Display and integrated SD Card</font>
+<font color="#95a5a6"> &nbsp;DI(Data in on devices)&#47;MOSI = 51</font>
+<font color="#95a5a6"> &nbsp;DO(Data out on devices)&#47;MISO = 50</font>
+<font color="#95a5a6"> &nbsp;CLK(Clock) = 52</font>
+<font color="#95a5a6">*&#47;</font>
+
+<font color="#434f54">&#47;&#47; Resistive Touch:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">YP</font> <font color="#000000">A0</font> <font color="#434f54">&#47;&#47; &nbsp;Y+ touch direction, requires analog pin: &#34;A&#34;</font>
+<font color="#5e6d03">#define</font> <font color="#000000">XM</font> <font color="#000000">A1</font> <font color="#434f54">&#47;&#47; &nbsp;X- touch direction, requires analog pin: &#34;A&#34;</font>
+<font color="#5e6d03">#define</font> <font color="#000000">YM</font> <font color="#000000">A2</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;Y- can be a digital pin</font>
+<font color="#5e6d03">#define</font> <font color="#000000">XP</font> <font color="#000000">A3</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;X+ can be a digital pin; equals DC, connect both to given pin!</font>
+<font color="#434f54">&#47;&#47; LCD Touch Display:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">TFT_CS</font> <font color="#000000">43</font> <font color="#434f54">&#47;&#47; &nbsp;SPI Chip Select Display</font>
+<font color="#5e6d03">#define</font> <font color="#000000">TFT_DC</font> <font color="#000000">A3</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;equals X+, connect both to given pin!</font>
+<font color="#434f54">&#47;&#47;#define TFT_RST 8 &#47;&#47; RST can be set to -1 if you tie it to Arduino&#39;s reset</font>
+<font color="#5e6d03">#define</font> <font color="#000000">CARD_CS</font> <font color="#000000">39</font> <font color="#434f54">&#47;&#47; SPI Chip Select integrated SD card</font>
+
+<font color="#434f54">&#47;&#47; Thermoelement Breakout Board:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">MAX_SPEC_CS</font> <font color="#000000">31</font>
+<font color="#5e6d03">#define</font> <font color="#000000">MAX_LOOP_CS</font> <font color="#000000">35</font>
+
+<font color="#434f54">&#47;&#47; Relais:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">RELAIS_PIN_GLASS</font> <font color="#000000">36</font>
+
+<font color="#434f54">&#47;&#47; NeoPixel Ring:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">PIN</font> <font color="#000000">8</font> <font color="#434f54">&#47;&#47; PWM required</font>
+
+
+<font color="#434f54">&#47;&#47; Object Definitions and corresponding variables ================</font>
+
+<font color="#434f54">&#47;&#47; SD Card for Data Logging:</font>
+<font color="#000000">SdFat</font> <b><font color="#d35400">SD</font></b><font color="#000000">;</font> <font color="#434f54">&#47;&#47; create File Object</font>
+<font color="#d35400">File</font> <font color="#000000">dataFile</font><font color="#000000">;</font>
+
+<font color="#434f54">&#47;&#47; Variables for logging temp values:</font>
+<font color="#00979c">bool</font> <font color="#000000">log_active</font> <font color="#434f54">=</font> <font color="#00979c">false</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; begin and end logging with specific buttons</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">long</font> <font color="#000000">currentMillis</font> <font color="#434f54">=</font> <font color="#000000">0</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; time variables for logging and or graphing</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">long</font> <font color="#000000">previousMillis</font> <font color="#434f54">=</font> <font color="#000000">0</font><font color="#000000">;</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">long</font> <font color="#000000">interval</font> <font color="#434f54">=</font> <font color="#000000">1000</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; interval in ms for plotting and data saving on SD</font>
+
+<font color="#434f54">&#47;&#47; Thermoelement Breakout Boards:</font>
+<font color="#000000">Adafruit_MAX31856</font> <font color="#000000">T_specimen</font> <font color="#434f54">=</font> <font color="#000000">Adafruit_MAX31856</font><font color="#000000">(</font><font color="#000000">MAX_SPEC_CS</font><font color="#000000">)</font><font color="#000000">;</font>
+<font color="#000000">Adafruit_MAX31856</font> <font color="#000000">T_loop</font> <font color="#434f54">=</font> <font color="#000000">Adafruit_MAX31856</font><font color="#000000">(</font><font color="#000000">MAX_LOOP_CS</font><font color="#000000">)</font><font color="#000000">;</font>
+<font color="#00979c">double</font> <font color="#000000">current_T_loop</font><font color="#000000">;</font>
+<font color="#00979c">double</font> <font color="#000000">current_T_specimen</font><font color="#000000">;</font>
+
+<font color="#434f54">&#47;&#47; LCD &nbsp;Button Shield:</font>
+<font color="#434f54">&#47;&#47; uses I2C with fixed Pins SCL = A4 and SDA = A5</font>
+<font color="#000000">Adafruit_RGBLCDShield</font> <font color="#000000">lcd</font> <font color="#434f54">=</font> <font color="#000000">Adafruit_RGBLCDShield</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+<font color="#434f54">&#47;&#47; define custom chracter for active heating glass</font>
+<font color="#00979c">byte</font> <font color="#000000">heatsign</font><font color="#000000">[</font><font color="#000000">8</font><font color="#000000">]</font> <font color="#434f54">=</font> <font color="#000000">{</font>
+ &nbsp;<font color="#000000">0b01000</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;*</font>
+ &nbsp;<font color="#000000">0b01100</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;**</font>
+ &nbsp;<font color="#000000">0b00110</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;&nbsp;**</font>
+ &nbsp;<font color="#000000">0b00110</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;&nbsp;**</font>
+ &nbsp;<font color="#000000">0b01100</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;**</font>
+ &nbsp;<font color="#000000">0b01100</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;**</font>
+ &nbsp;<font color="#000000">0b00110</font><font color="#434f54">,</font> <font color="#434f54">&#47;&#47; &nbsp;&nbsp;**</font>
+ &nbsp;<font color="#000000">0b11111</font> &nbsp;<font color="#434f54">&#47;&#47; *****</font>
+<font color="#000000">}</font><font color="#000000">;</font>
+
+<font color="#434f54">&#47;&#47; Color Definitions to chose from for both displays:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTBLUE</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xB6DF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTTEAL</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xBF5F</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTGREEN</font> &nbsp;&nbsp;<font color="#000000">0xBFF7</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTCYAN</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xC7FF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTRED</font> &nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0xFD34</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTMAGENTA</font> <font color="#000000">0xFD5F</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTYELLOW</font> &nbsp;<font color="#000000">0xFFF8</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTORANGE</font> &nbsp;<font color="#000000">0xFE73</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTPINK</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xFDDF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTPURPLE</font> &nbsp;<font color="#000000">0xCCFF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">LTGREY</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xE71C</font>
+
+<font color="#5e6d03">#define</font> <font color="#000000">BLUE</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0x001F</font>
+<font color="#5e6d03">#define</font> <font color="#000000">TEAL</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0x0438</font>
+<font color="#5e6d03">#define</font> <font color="#000000">GREEN</font> &nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0x07E0</font>
+<font color="#5e6d03">#define</font> <font color="#000000">CYAN</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0x07FF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">RED</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0xF800</font>
+<font color="#5e6d03">#define</font> <font color="#000000">MAGENTA</font> &nbsp;&nbsp;<font color="#000000">0xF81F</font>
+<font color="#5e6d03">#define</font> <font color="#000000">YELLOW</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xFFE0</font>
+<font color="#5e6d03">#define</font> <font color="#000000">ORANGE</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xFC00</font>
+<font color="#5e6d03">#define</font> <font color="#000000">PINK</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0xF81F</font>
+<font color="#5e6d03">#define</font> <font color="#000000">PURPLE</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0x8010</font>
+<font color="#5e6d03">#define</font> <font color="#000000">GREY</font> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0xC618</font>
+<font color="#5e6d03">#define</font> <font color="#000000">WHITE</font> &nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0xFFFF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">BLACK</font> &nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0x0000</font>
+
+<font color="#5e6d03">#define</font> <font color="#000000">DKBLUE</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0x000D</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKTEAL</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0x020C</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKGREEN</font> &nbsp;&nbsp;<font color="#000000">0x03E0</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKCYAN</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0x03EF</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKRED</font> &nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">0x6000</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKMAGENTA</font> <font color="#000000">0x8008</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKYELLOW</font> &nbsp;<font color="#000000">0x8400</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKORANGE</font> &nbsp;<font color="#000000">0x8200</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKPINK</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0x9009</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKPURPLE</font> &nbsp;<font color="#000000">0x4010</font>
+<font color="#5e6d03">#define</font> <font color="#000000">DKGREY</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0x4A49</font>
+
+<font color="#434f54">&#47;&#47; LCD Touch Display:</font>
+<font color="#000000">Adafruit_ILI9341</font> <font color="#000000">tft</font> <font color="#434f54">=</font> <font color="#000000">Adafruit_ILI9341</font><font color="#000000">(</font><font color="#000000">TFT_CS</font><font color="#434f54">,</font> <font color="#000000">TFT_DC</font><font color="#000000">)</font><font color="#000000">;</font>
+<font color="#00979c">boolean</font> <font color="#000000">display1</font> <font color="#434f54">=</font> <font color="#00979c">true</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;variable for multiple screens within graphing function</font>
+<font color="#00979c">double</font> <font color="#000000">ox</font> <font color="#434f54">,</font> <font color="#000000">oy</font><font color="#434f54">,</font> <font color="#000000">oy2</font> <font color="#000000">;</font> <font color="#434f54">&#47;&#47; base values for incremental line drawing within the graph</font>
+
+<font color="#434f54">&#47;&#47; diagram argument list, define plot style here:</font>
+<font color="#00979c">double</font> &nbsp;<font color="#000000">y</font><font color="#434f54">,</font> <font color="#000000">y2</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; initialize x, y and y2</font>
+<font color="#00979c">int</font> <font color="#000000">x</font> <font color="#434f54">=</font> <font color="#000000">0</font> <font color="#000000">;</font> <font color="#434f54">&#47;&#47; seconds as x values combine with long from logging sd card</font>
+<font color="#00979c">int</font> <font color="#000000">xrange</font> <font color="#434f54">=</font> <font color="#000000">60</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; range of x values on one screen</font>
+<font color="#00979c">int</font> <font color="#000000">gx</font> <font color="#434f54">=</font> <font color="#000000">40</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; x graph base location (lower left corner) relative to upper left corner of display</font>
+<font color="#00979c">int</font> <font color="#000000">gy</font> <font color="#434f54">=</font> <font color="#000000">210</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; y graph base location (lower left corner) relative to upper left corner of display</font>
+<font color="#00979c">int</font> <font color="#000000">w</font> <font color="#434f54">=</font> <font color="#000000">250</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; width of graph</font>
+<font color="#00979c">int</font> <font color="#000000">h</font> <font color="#434f54">=</font> <font color="#000000">200</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; height of graph</font>
+<font color="#00979c">int</font> <font color="#000000">xcapright</font> <font color="#434f54">=</font> <font color="#000000">x</font> <font color="#434f54">+</font> <font color="#000000">xrange</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; stores previous x boundaries</font>
+<font color="#00979c">int</font> <font color="#000000">xcapleft</font> <font color="#434f54">=</font> <font color="#000000">x</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; stores previous x bounds, start with 0</font>
+<font color="#00979c">int</font> <font color="#000000">xinc</font> <font color="#434f54">=</font> <font color="#000000">10</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; division of x axis</font>
+<font color="#00979c">int</font> <font color="#000000">ylo</font> <font color="#434f54">=</font> <font color="#434f54">-</font><font color="#000000">100</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; lower bound of y axis</font>
+<font color="#00979c">int</font> <font color="#000000">yhi</font> <font color="#434f54">=</font> <font color="#000000">20</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; upper bound of y axis</font>
+<font color="#00979c">int</font> <font color="#000000">yinc</font> <font color="#434f54">=</font> <font color="#000000">10</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; division of y axis</font>
+<font color="#00979c">String</font> <font color="#000000">title</font> <font color="#434f54">=</font> <font color="#005c5f">&#34;Temperatures&#34;</font><font color="#000000">;</font>
+<font color="#00979c">String</font> <font color="#000000">xlabel</font> <font color="#434f54">=</font> <font color="#005c5f">&#34;Time [s]&#34;</font><font color="#000000">;</font>
+<font color="#00979c">String</font> <font color="#000000">ylabel</font> <font color="#434f54">=</font> <font color="#005c5f">&#34;Temperature [Celsius]&#34;</font><font color="#000000">;</font>
+<font color="#00979c">String</font> <font color="#000000">yname1</font> <font color="#434f54">=</font> <font color="#005c5f">&#34;loop&#34;</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; data name &nbsp;1 for diagram legend</font>
+<font color="#00979c">String</font> <font color="#000000">yname2</font> <font color="#434f54">=</font> <font color="#005c5f">&#34;specimen&#34;</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; data name 2 for diagram legend</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">gcolor</font> <font color="#434f54">=</font> <font color="#000000">RED</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; graph background color</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">acolor</font> <font color="#434f54">=</font> <font color="#000000">RED</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; axis line color</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">pcolor1</font> <font color="#434f54">=</font> <font color="#000000">GREEN</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; y plot and legend color</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">pcolor2</font> <font color="#434f54">=</font> <font color="#000000">CYAN</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; y2 plot and legend color</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">tcolor</font> <font color="#434f54">=</font> <font color="#000000">WHITE</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; text color</font>
+<font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">bcolor</font> <font color="#434f54">=</font> <font color="#000000">BLACK</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; background color text boxes</font>
+
+<font color="#434f54">&#47;&#47; Relais:</font>
+<font color="#00979c">bool</font> <font color="#000000">heating_glass_active</font> <font color="#434f54">=</font> <font color="#00979c">false</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;initially off</font>
+
+<font color="#434f54">&#47;&#47; NeoPixel Ring:</font>
+<font color="#5e6d03">#define</font> <font color="#000000">NUMPIXELS</font> <font color="#000000">24</font> &nbsp;<font color="#434f54">&#47;&#47; number of pixels in ring</font>
+<b><font color="#d35400">Adafruit_NeoPixel</font></b> <font color="#000000">ring</font> <font color="#434f54">=</font> <b><font color="#d35400">Adafruit_NeoPixel</font></b><font color="#000000">(</font><font color="#000000">NUMPIXELS</font><font color="#434f54">,</font> <font color="#000000">PIN</font><font color="#434f54">,</font> <font color="#000000">NEO_GRBW</font> <font color="#434f54">+</font> <font color="#d35400">NEO_KHZ800</font><font color="#000000">)</font><font color="#000000">;</font>
+
+
+<font color="#434f54">&#47;&#47; Setup =======================================================================</font>
+<font color="#00979c">void</font> <font color="#5e6d03">setup</font><font color="#000000">(</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;<font color="#434f54">&#47;&#47; LCD Touch Display:</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">fillScreen</font><font color="#000000">(</font><font color="#000000">BLACK</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">setRotation</font><font color="#000000">(</font><font color="#000000">3</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; &nbsp;horizontal with SPI pins on the left</font>
+ &nbsp;
+ &nbsp;<font color="#434f54">&#47;&#47; Open serial communications and wait for port to open:</font>
+ &nbsp;<b><font color="#d35400">Serial</font></b><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">9600</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#5e6d03">while</font> <font color="#000000">(</font><font color="#434f54">!</font><b><font color="#d35400">Serial</font></b><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">;</font> <font color="#434f54">&#47;&#47; wait for serial port to connect. Needed for native USB port only</font>
+ &nbsp;<font color="#000000">}</font>
+ &nbsp;<font color="#434f54">&#47;&#47; see if the card is present and can be initialized:</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#434f54">!</font><b><font color="#d35400">SD</font></b><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">CARD_CS</font><font color="#000000">)</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">2</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">RED</font><font color="#434f54">,</font> <font color="#000000">BLACK</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">100</font><font color="#434f54">,</font> <font color="#000000">100</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#005c5f">&#34;Card failed&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47;Serial.println(&#34;Card failed, or not present&#34;);</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; don&#39;t do anything more:</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">while</font> <font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">}</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">2</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">GREEN</font><font color="#434f54">,</font> <font color="#000000">BLACK</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">100</font><font color="#434f54">,</font> <font color="#000000">100</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#005c5f">&#34;Card initialized&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">1000</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">fillScreen</font><font color="#000000">(</font><font color="#000000">BLACK</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;<font color="#434f54">&#47;&#47; I&#47;O Pin Definitions:</font>
+ &nbsp;<font color="#d35400">pinMode</font><font color="#000000">(</font><font color="#000000">RELAIS_PIN_GLASS</font><font color="#434f54">,</font> <font color="#00979c">OUTPUT</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;<font color="#434f54">&#47;&#47; Neopixel Ring:</font>
+ &nbsp;<font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; initializes NeoPixel</font>
+ &nbsp;<font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">show</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; sets all pixel to off at start</font>
+
+ &nbsp;<font color="#434f54">&#47;&#47; LCD Shield with Buttons:</font>
+ &nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">16</font><font color="#434f54">,</font> <font color="#000000">2</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setBacklight</font><font color="#000000">(</font><font color="#000000">TEAL</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#434f54">&#47;&#47; Create byte for custom character, active heating glass</font>
+ &nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">createChar</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">heatsign</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;<font color="#434f54">&#47;&#47; Max Breakout Boards:</font>
+ &nbsp;<font color="#000000">T_specimen</font><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">T_loop</font><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">T_specimen</font><font color="#434f54">.</font><font color="#000000">setThermocoupleType</font><font color="#000000">(</font><font color="#000000">MAX31856_TCTYPE_K</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">T_loop</font><font color="#434f54">.</font><font color="#000000">setThermocoupleType</font><font color="#000000">(</font><font color="#000000">MAX31856_TCTYPE_K</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;
+<font color="#000000">}</font>
+
+
+<font color="#434f54">&#47;&#47; Loop ========================================================================</font>
+<font color="#00979c">void</font> <font color="#5e6d03">loop</font><font color="#000000">(</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;<font color="#434f54">&#47;&#47; Perform logging and or graphing every given interval e.g. each second</font>
+ &nbsp;<font color="#434f54">&#47;&#47; keep on graphing every interval no matter what, refresh screen and begin with 0s when logging is started by button interface</font>
+ &nbsp;<font color="#434f54">&#47;&#47; start logging only when selected</font>
+ &nbsp;
+ &nbsp;<font color="#434f54">&#47;&#47; Button Interface:</font>
+ &nbsp;<font color="#00979c">uint8_t</font> <font color="#000000">buttons</font> <font color="#434f54">=</font> <font color="#000000">lcd</font><font color="#434f54">.</font><font color="#000000">readButtons</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; value for specific button see .h file</font>
+ &nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">buttons</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">buttons</font> <font color="#434f54">&amp;</font> <font color="#000000">BUTTON_SELECT</font><font color="#000000">)</font> <font color="#000000">{</font> &nbsp;<font color="#434f54">&#47;&#47; switch button</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">heating_glass_active</font> <font color="#434f54">=</font> <font color="#434f54">!</font><font color="#000000">heating_glass_active</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; invert boolean</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">heating_glass_active</font> <font color="#434f54">==</font> <font color="#00979c">true</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">digitalWrite</font><font color="#000000">(</font><font color="#000000">RELAIS_PIN_GLASS</font><font color="#434f54">,</font> <font color="#00979c">HIGH</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;heating on&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">500</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; delay for user visibility</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">clear</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; remove letters again with complete wipe</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">14</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">write</font><font color="#000000">(</font><font color="#00979c">byte</font><font color="#000000">(</font><font color="#000000">0</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">15</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">write</font><font color="#000000">(</font><font color="#00979c">byte</font><font color="#000000">(</font><font color="#000000">0</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">heating_glass_active</font> <font color="#434f54">==</font> <font color="#00979c">false</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">digitalWrite</font><font color="#000000">(</font><font color="#000000">RELAIS_PIN_GLASS</font><font color="#434f54">,</font> <font color="#00979c">LOW</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;heating off&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">500</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; delay for user visibility</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">clear</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; remove heat signs again with complete wipe</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">buttons</font> <font color="#434f54">&amp;</font> <font color="#000000">BUTTON_LEFT</font><font color="#000000">)</font> <font color="#000000">{</font> &nbsp;<font color="#434f54">&#47;&#47; start logging</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">log_active</font> <font color="#434f54">=</font> <font color="#00979c">true</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">fillScreen</font><font color="#000000">(</font><font color="#000000">BLACK</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">display1</font> <font color="#434f54">=</font> <font color="#00979c">true</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; redraw and create new graph at start of logging</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; set time and time boundaries back to start: x, xcapright, xcapleft</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">x</font> <font color="#434f54">=</font> <font color="#000000">0</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">xcapleft</font> <font color="#434f54">=</font> <font color="#000000">x</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">xcapright</font> <font color="#434f54">=</font> <font color="#000000">x</font> <font color="#434f54">+</font> <font color="#000000">xrange</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;logging &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; 14 out of 16x2 char display, keep heating sign at pos. 15,16</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">500</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; delay for user visibility</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; remove message</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">buttons</font> <font color="#434f54">&amp;</font> <font color="#000000">BUTTON_RIGHT</font><font color="#000000">)</font> <font color="#000000">{</font> &nbsp;<font color="#434f54">&#47;&#47; stop logging</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">log_active</font> <font color="#434f54">=</font> <font color="#00979c">false</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;logging end &nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">500</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; delay for user visibility</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; remove message</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">buttons</font> <font color="#434f54">&amp;</font> <font color="#000000">BUTTON_UP</font><font color="#000000">)</font> <font color="#000000">{</font> &nbsp;<font color="#434f54">&#47;&#47; switch on leds</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">led_on</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;led on &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">500</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; delay for user visibility</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; remove message</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">buttons</font> <font color="#434f54">&amp;</font> <font color="#000000">BUTTON_DOWN</font><font color="#000000">)</font> <font color="#000000">{</font> &nbsp;<font color="#434f54">&#47;&#47; switch off leds</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">led_off</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;led off &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#d35400">delay</font><font color="#000000">(</font><font color="#000000">500</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; delay for user visibility</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; remove message</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;<font color="#000000">}</font>
+ &nbsp;
+ &nbsp;<font color="#000000">currentMillis</font> <font color="#434f54">=</font> <font color="#d35400">millis</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; millis() returns an unsigned long!</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">currentMillis</font> <font color="#434f54">-</font> <font color="#000000">previousMillis</font> <font color="#434f54">&gt;=</font> <font color="#000000">interval</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; &nbsp;currentMillis = millis();</font>
+ &nbsp;&nbsp;&nbsp;<font color="#00979c">unsigned</font> <font color="#00979c">long</font> <font color="#000000">t_offset</font> <font color="#434f54">=</font> <font color="#000000">currentMillis</font> <font color="#434f54">-</font> <font color="#000000">previousMillis</font> <font color="#434f54">-</font> <font color="#000000">interval</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; check for time offset if other tasks take too long to execute</font>
+ &nbsp;&nbsp;&nbsp;<b><font color="#d35400">Serial</font></b><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#005c5f">&#34;time offset from interval in ms&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<b><font color="#d35400">Serial</font></b><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">t_offset</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">previousMillis</font> <font color="#434f54">=</font> <font color="#000000">currentMillis</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; immedeately overwrite variable</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; for small enough t_offset just add 1 to time variable, this also allows to start from 0s at logging start</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">x</font> <font color="#434f54">+=</font> <font color="#000000">interval</font><font color="#434f54">&#47;</font><font color="#000000">1000</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; rough method</font>
+ &nbsp;&nbsp;&nbsp;
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; permanent graphing on touch display and displaying current temp on lcd display at given interval</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; read each thermocouple just once due to conversion times (~10E2 ms each) and use variable for later actions, overwrite within each interval</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">current_T_loop</font> <font color="#434f54">=</font> <font color="#000000">T_loop</font><font color="#434f54">.</font><font color="#000000">readThermocoupleTemperature</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">current_T_specimen</font> <font color="#434f54">=</font> <font color="#000000">T_specimen</font><font color="#434f54">.</font><font color="#000000">readThermocoupleTemperature</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; lcd display with current temperatures:</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; set the cursor to column 0, line 1; note: line 1 is the second row, since counting begins with 0:</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;spec &#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#000000">current_T_specimen</font><font color="#434f54">,</font> <font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; &nbsp;one digit float number</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#005c5f">&#34;loop &#34;</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">lcd</font><font color="#434f54">.</font><font color="#d35400">print</font><font color="#000000">(</font><font color="#000000">current_T_loop</font><font color="#434f54">,</font> <font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; &nbsp;one digit float number</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; Graph plotting on touch display:</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">y</font> <font color="#434f54">=</font> <font color="#000000">current_T_loop</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">y2</font> <font color="#434f54">=</font> <font color="#000000">current_T_specimen</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#95a5a6">&#47;* remaining arguments for graph function:</font>
+<font color="#95a5a6"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tft = name of display object, here touch display</font>
+<font color="#95a5a6"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x = x data point</font>
+<font color="#95a5a6"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y = y data point</font>
+<font color="#95a5a6"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y2 = y2 data point</font>
+<font color="#95a5a6"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;redraw = flag to redraw graph on fist call only, pointer to display</font>
+<font color="#95a5a6"> &nbsp;&nbsp;&nbsp;*&#47;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">Graph</font><font color="#000000">(</font><font color="#000000">tft</font><font color="#434f54">,</font> <font color="#000000">x</font><font color="#434f54">,</font> <font color="#000000">y</font><font color="#434f54">,</font> <font color="#000000">y2</font><font color="#434f54">,</font> <font color="#000000">gx</font><font color="#434f54">,</font> <font color="#000000">gy</font><font color="#434f54">,</font> <font color="#000000">w</font><font color="#434f54">,</font> <font color="#000000">h</font><font color="#434f54">,</font> <font color="#000000">xcapleft</font><font color="#434f54">,</font> <font color="#000000">xcapright</font><font color="#434f54">,</font> <font color="#000000">xinc</font><font color="#434f54">,</font> <font color="#000000">ylo</font><font color="#434f54">,</font> <font color="#000000">yhi</font><font color="#434f54">,</font> <font color="#000000">yinc</font><font color="#434f54">,</font> <font color="#000000">title</font><font color="#434f54">,</font> <font color="#000000">xlabel</font><font color="#434f54">,</font> <font color="#000000">ylabel</font><font color="#434f54">,</font> <font color="#000000">yname1</font><font color="#434f54">,</font> <font color="#000000">yname2</font><font color="#434f54">,</font> <font color="#000000">gcolor</font><font color="#434f54">,</font> <font color="#000000">acolor</font><font color="#434f54">,</font> <font color="#000000">pcolor1</font><font color="#434f54">,</font> <font color="#000000">pcolor2</font><font color="#434f54">,</font> <font color="#000000">tcolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#434f54">,</font> <font color="#000000">display1</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">x</font> <font color="#434f54">==</font> <font color="#000000">xcapright</font><font color="#000000">)</font> <font color="#000000">{</font> <font color="#434f54">&#47;&#47; overwrite x axis boundaries for new screen y-axis labeling:</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">xcapright</font> <font color="#434f54">=</font> <font color="#000000">xcapright</font> <font color="#434f54">+</font> <font color="#000000">xrange</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">xcapleft</font> <font color="#434f54">=</font> <font color="#000000">xcapleft</font> <font color="#434f54">+</font> <font color="#000000">xrange</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#000000">fillScreen</font><font color="#000000">(</font><font color="#000000">BLACK</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">display1</font> <font color="#434f54">=</font> <font color="#00979c">true</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; redraws axis for new plot on fresh screen</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; SD Logging: &nbsp;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">log_active</font> <font color="#434f54">==</font> <font color="#00979c">true</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; make a string for assembling the data to log, overwrite String within each loop cycle</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#00979c">String</font> <font color="#000000">dataString</font> <font color="#434f54">=</font> <font color="#005c5f">&#34;&#34;</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataString</font> <font color="#434f54">+=</font> <font color="#00979c">String</font><font color="#000000">(</font><font color="#000000">x</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; x stores current seconds</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataString</font> <font color="#434f54">+=</font> <font color="#005c5f">&#34;,&#34;</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataString</font> <font color="#434f54">+=</font> <font color="#00979c">String</font><font color="#000000">(</font><font color="#000000">current_T_specimen</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataString</font> <font color="#434f54">+=</font> <font color="#005c5f">&#34;,&#34;</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataString</font> <font color="#434f54">+=</font> <font color="#00979c">String</font><font color="#000000">(</font><font color="#000000">current_T_loop</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; open the file. note that only one file can be open at a time,</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; so you have to close this one before opening another.</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; open creates new file or opens a prexisiting one</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataFile</font> <font color="#434f54">=</font> <b><font color="#d35400">SD</font></b><font color="#434f54">.</font><font color="#d35400">open</font><font color="#000000">(</font><font color="#005c5f">&#34;data.txt&#34;</font><font color="#434f54">,</font> <font color="#00979c">FILE_WRITE</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; argument FILE_WRITE makes it writable and readable</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; so far always writes everything in single file, different logs start with new second count</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; if the file is available, write to it:</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">dataFile</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataFile</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">dataString</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">dataFile</font><font color="#434f54">.</font><font color="#d35400">close</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; always close file at the end</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; print to the serial port too:</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47;Serial.println(dataString);</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; if the file isn&#39;t open, pop up an error:</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">else</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47;Serial.println(&#34;error opening file&#34;);</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;<font color="#000000">}</font>
+<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;
+
+<font color="#434f54">&#47;&#47; Functions ============================================================</font>
+<font color="#434f54">&#47;&#47; Graph Plotting [</font><u><font color="#434f54">https:&#47;&#47;www.youtube.com&#47;watch?v=YejRbIKe6e0</font></u><font color="#434f54">]</font>
+<font color="#00979c">void</font> <font color="#000000">Graph</font><font color="#000000">(</font><font color="#000000">Adafruit_ILI9341</font> <font color="#434f54">&amp;</font><font color="#000000">d</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">x</font><font color="#434f54">,</font> <font color="#00979c">double</font> <font color="#000000">y</font><font color="#434f54">,</font> <font color="#00979c">double</font> <font color="#000000">y2</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">gx</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">gy</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">w</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">h</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">xlo</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">xhi</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">xinc</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">ylo</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">yhi</font><font color="#434f54">,</font> <font color="#00979c">int</font> <font color="#000000">yinc</font><font color="#434f54">,</font> <font color="#00979c">String</font> <font color="#000000">title</font><font color="#434f54">,</font> <font color="#00979c">String</font> <font color="#000000">xlabel</font><font color="#434f54">,</font> <font color="#00979c">String</font> <font color="#000000">ylabel</font><font color="#434f54">,</font> <font color="#00979c">String</font> <font color="#000000">yname1</font><font color="#434f54">,</font> <font color="#00979c">String</font> <font color="#000000">yname2</font><font color="#434f54">,</font> <font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">gcolor</font><font color="#434f54">,</font> <font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">acolor</font><font color="#434f54">,</font> <font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">pcolor1</font><font color="#434f54">,</font> <font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">pcolor2</font><font color="#434f54">,</font> <font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">tcolor</font><font color="#434f54">,</font> <font color="#00979c">unsigned</font> <font color="#00979c">int</font> <font color="#000000">bcolor</font><font color="#434f54">,</font> <font color="#00979c">boolean</font> <font color="#434f54">&amp;</font><font color="#000000">redraw</font><font color="#000000">)</font> <font color="#000000">{</font>
+
+ &nbsp;<font color="#00979c">double</font> <font color="#000000">ydiv</font><font color="#434f54">,</font> <font color="#000000">xdiv</font><font color="#000000">;</font>
+ &nbsp;<font color="#00979c">double</font> <font color="#000000">i</font><font color="#000000">;</font>
+ &nbsp;<font color="#00979c">double</font> <font color="#000000">temp</font><font color="#000000">;</font>
+ &nbsp;<font color="#00979c">int</font> <font color="#000000">rot</font><font color="#434f54">,</font> <font color="#000000">newrot</font><font color="#000000">;</font>
+
+ &nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">redraw</font> <font color="#434f54">==</font> <font color="#00979c">true</font><font color="#000000">)</font> <font color="#000000">{</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#000000">redraw</font> <font color="#434f54">=</font> <font color="#00979c">false</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">ox</font> <font color="#434f54">=</font> <font color="#000000">(</font><font color="#000000">x</font> <font color="#434f54">-</font> <font color="#000000">xlo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font> <font color="#000000">w</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">xhi</font> <font color="#434f54">-</font> <font color="#000000">xlo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gx</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">oy</font> <font color="#434f54">=</font> <font color="#000000">(</font><font color="#000000">y</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font><font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">gy</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">yhi</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gy</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">oy2</font> <font color="#434f54">=</font> <font color="#000000">(</font><font color="#000000">y2</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font><font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">gy</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">yhi</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gy</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; draw y scale</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">for</font> <font color="#000000">(</font> <font color="#000000">i</font> <font color="#434f54">=</font> <font color="#000000">ylo</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">&lt;=</font> <font color="#000000">yhi</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">+=</font> <font color="#000000">yinc</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; compute the transform</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">temp</font> <font color="#434f54">=</font> &nbsp;<font color="#000000">(</font><font color="#000000">i</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font><font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">gy</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">yhi</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gy</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">i</font> <font color="#434f54">==</font> <font color="#000000">0</font><font color="#000000">)</font> <font color="#000000">{</font> <font color="#434f54">&#47;&#47; on axis</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">drawLine</font><font color="#000000">(</font><font color="#000000">gx</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gx</font> <font color="#434f54">+</font> <font color="#000000">w</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">acolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">else</font> <font color="#000000">{</font> <font color="#434f54">&#47;&#47; on graph</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">drawLine</font><font color="#000000">(</font><font color="#000000">gx</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gx</font> <font color="#434f54">+</font> <font color="#000000">w</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">tcolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">gx</font> <font color="#434f54">-</font> <font color="#000000">40</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; precision is default Arduino--this could really use some format control</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; round for °C here</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#00979c">int</font><font color="#000000">(</font><font color="#000000">i</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; d.println(i);</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; draw x scale</font>
+ &nbsp;&nbsp;&nbsp;<font color="#5e6d03">for</font> <font color="#000000">(</font><font color="#000000">i</font> <font color="#434f54">=</font> <font color="#000000">xlo</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">&lt;=</font> <font color="#000000">xhi</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">+=</font> <font color="#000000">xinc</font><font color="#000000">)</font> <font color="#000000">{</font>
+
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; compute the transform</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">temp</font> <font color="#434f54">=</font> &nbsp;<font color="#000000">(</font><font color="#000000">i</font> <font color="#434f54">-</font> <font color="#000000">xlo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font> <font color="#000000">w</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">xhi</font> <font color="#434f54">-</font> <font color="#000000">xlo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gx</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">i</font> <font color="#434f54">==</font> <font color="#000000">0</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">drawLine</font><font color="#000000">(</font><font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gy</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font><font color="#434f54">,</font> <font color="#000000">acolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#5e6d03">else</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">drawLine</font><font color="#000000">(</font><font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gy</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font><font color="#434f54">,</font> <font color="#000000">gcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">tcolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">+</font> <font color="#000000">10</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; precision is default Arduino--this could really use some format control</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; round for seconds here</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#00979c">int</font><font color="#000000">(</font><font color="#000000">i</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; d.println(i);</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47;now draw the labels</font>
+<font color="#434f54">&#47;&#47; &nbsp;&nbsp;&nbsp;d.setTextSize(2);</font>
+<font color="#434f54">&#47;&#47; &nbsp;&nbsp;&nbsp;d.setTextColor(tcolor, bcolor);</font>
+<font color="#434f54">&#47;&#47; &nbsp;&nbsp;&nbsp;d.setCursor(gx , gy - h - 30);</font>
+<font color="#434f54">&#47;&#47; &nbsp;&nbsp;&nbsp;d.println(title);</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">acolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">gx</font> <font color="#434f54">+</font> <font color="#000000">200</font> <font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">+</font> <font color="#000000">20</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">xlabel</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">acolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">gx</font> <font color="#434f54">-</font> <font color="#000000">40</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">10</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">ylabel</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">pcolor1</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">gx</font> <font color="#434f54">+</font> <font color="#000000">150</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">10</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">yname1</font><font color="#000000">)</font><font color="#000000">;</font>
+
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">pcolor2</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">gx</font> <font color="#434f54">+</font> <font color="#000000">200</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">10</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">yname2</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">}</font>
+
+ &nbsp;<font color="#434f54">&#47;&#47;graph drawn now plot the data</font>
+ &nbsp;<font color="#000000">x</font> <font color="#434f54">=</font> &nbsp;<font color="#000000">(</font><font color="#000000">x</font> <font color="#434f54">-</font> <font color="#000000">xlo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font> <font color="#000000">w</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">xhi</font> <font color="#434f54">-</font> <font color="#000000">xlo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gx</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">y</font> <font color="#434f54">=</font> &nbsp;<font color="#000000">(</font><font color="#000000">y</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font><font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">gy</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">yhi</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gy</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">y2</font> <font color="#434f54">=</font> <font color="#000000">(</font><font color="#000000">y2</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">*</font> <font color="#000000">(</font><font color="#000000">gy</font> <font color="#434f54">-</font> <font color="#000000">h</font> <font color="#434f54">-</font> <font color="#000000">gy</font><font color="#000000">)</font> <font color="#434f54">&#47;</font> <font color="#000000">(</font><font color="#000000">yhi</font> <font color="#434f54">-</font> <font color="#000000">ylo</font><font color="#000000">)</font> <font color="#434f54">+</font> <font color="#000000">gy</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">drawLine</font><font color="#000000">(</font><font color="#000000">ox</font><font color="#434f54">,</font> <font color="#000000">oy</font><font color="#434f54">,</font> <font color="#000000">x</font><font color="#434f54">,</font> <font color="#000000">y</font><font color="#434f54">,</font> <font color="#000000">pcolor1</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#434f54">&#47;&#47; broadens plot line</font>
+ &nbsp;<font color="#434f54">&#47;&#47;d.drawLine(ox, oy + 1, x, y + 1, pcolor1);</font>
+ &nbsp;<font color="#434f54">&#47;&#47;d.drawLine(ox, oy - 1, x, y - 1, pcolor1);</font>
+ &nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">drawLine</font><font color="#000000">(</font><font color="#000000">ox</font><font color="#434f54">,</font> <font color="#000000">oy2</font><font color="#434f54">,</font> <font color="#000000">x</font><font color="#434f54">,</font> <font color="#000000">y2</font><font color="#434f54">,</font> <font color="#000000">pcolor2</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;<font color="#434f54">&#47;&#47; broadens plot line</font>
+ &nbsp;<font color="#434f54">&#47;&#47;d.drawLine(ox, oy2 + 1, x, y2 + 1, pcolor2);</font>
+ &nbsp;<font color="#434f54">&#47;&#47;d.drawLine(ox, oy2 - 1, x, y2 - 1, pcolor2);</font>
+ &nbsp;<font color="#000000">ox</font> <font color="#434f54">=</font> <font color="#000000">x</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">oy</font> <font color="#434f54">=</font> <font color="#000000">y</font><font color="#000000">;</font>
+ &nbsp;<font color="#000000">oy2</font> <font color="#434f54">=</font> <font color="#000000">y2</font><font color="#000000">;</font>
+<font color="#000000">}</font>
+
+<font color="#434f54">&#47;&#47; Neopixel Functions:</font>
+<font color="#00979c">void</font> <font color="#000000">led_on</font><font color="#000000">(</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;<font color="#5e6d03">for</font> <font color="#000000">(</font><font color="#00979c">uint8_t</font> <font color="#000000">i</font> <font color="#434f54">=</font> <font color="#000000">0</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">&lt;</font> <font color="#000000">NUMPIXELS</font><font color="#000000">;</font> <font color="#000000">i</font><font color="#434f54">++</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">setPixelColor</font><font color="#000000">(</font><font color="#000000">i</font><font color="#434f54">,</font> <font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">Color</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">255</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">show</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; send data to pixels</font>
+ &nbsp;<font color="#000000">}</font>
+<font color="#000000">}</font>
+<font color="#00979c">void</font> <font color="#000000">led_off</font><font color="#000000">(</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;<font color="#5e6d03">for</font> <font color="#000000">(</font><font color="#00979c">uint8_t</font> <font color="#000000">i</font> <font color="#434f54">=</font> <font color="#000000">0</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">&lt;</font> <font color="#000000">NUMPIXELS</font><font color="#000000">;</font> <font color="#000000">i</font><font color="#434f54">++</font><font color="#000000">)</font> <font color="#000000">{</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">setPixelColor</font><font color="#000000">(</font><font color="#000000">i</font><font color="#434f54">,</font> <font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">Color</font><font color="#000000">(</font><font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#434f54">,</font> <font color="#000000">0</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
+ &nbsp;&nbsp;&nbsp;<font color="#000000">ring</font><font color="#434f54">.</font><font color="#d35400">show</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; send data to pixels</font>
+ &nbsp;<font color="#000000">}</font>
+<font color="#000000">}</font>
+
+
+</pre>

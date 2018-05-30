@@ -1,4 +1,6 @@
-#include <Wire.h> // Fundamentals like SPI   
+//#include <Wire.h> // Fundamentals like SPI   
+#include <SPI.h>
+#include <SD.h>
 
 // Thermoelement Breakout Board:
 #include <Adafruit_MAX31856.h>
