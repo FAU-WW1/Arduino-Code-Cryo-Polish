@@ -1,9 +1,7 @@
 // Libraries ============================
-#include <Wire.h> //  Fundamentals like SPI   
-//#include <SPI.h>
+#include <Wire.h> //    
 
 // SD Lib:
-//#include <SD.h>
 #include <SPI.h>
 #include "SdFat.h"
 
@@ -24,10 +22,7 @@
 
 // Global Pinout =========================
 /*
-  Pin Setting for Wiring Mega 2560
-  Arduino MEGA                 device
-  5V
-  GND
+  Pin Setting for Wiring Mega 2560:
   A0  Resistive Touch Y+
   A1  Resistive Touch X-
   A2  Resistive Touch Y-
@@ -35,21 +30,20 @@
   Fix I2C Pins:
   21 (SCL)  Display 16x2
   20 (SDA)  Display 16x2
-  D36  Relais#2 heating glass
+  D36  Relais heating glass
   D8 (PWM)  Neopixel Ring
   
   SPI Chip Selects (CS):
-  D31  MAX31856#1
-  D35  MAX31856#2
-  D39  SD Card (integrated in Display)
+  D31  MAX31856#1 Specimen
+  D35  MAX31856#2 Loop
+  D39  SD Card (integrated in Touch Display)
   D43 TFT Display
   
   Fix SPI Pins for Mega Boards:
-  SPI Device: MAX31856#1  MAX31856#2  TFT Display  SD Card
+  SPI Devices: MAX31856#1  MAX31856#2  TFT Display and integrated SD Card
   DI(Data in on devices)/MOSI = 51
   DO(Data out on devices)/MISO = 50
   CLK(Clock) = 52
-  
 */
 
 // Resistive Touch:
@@ -59,7 +53,7 @@
 #define XP A3  //  X+ can be a digital pin; equals DC, connect both to given pin!
 // LCD Touch Display:
 #define TFT_CS 43 //  SPI Chip Select Display
-#define TFT_DC A3  //  equals X+, connect both to given pin
+#define TFT_DC A3  //  equals X+, connect both to given pin!
 //#define TFT_RST 8 // RST can be set to -1 if you tie it to Arduino's reset
 #define CARD_CS 39 // SPI Chip Select integrated SD card
 
@@ -74,23 +68,19 @@
 #define PIN 8 // PWM required
 
 
-
 // Object Definitions and corresponding variables ================
 
 // SD Card for Data Logging:
-
-SdFat SD;
-// create File Object
+SdFat SD; // create File Object
 File dataFile;
 
-
-
+// Variables for logging temp values:
 bool log_active = false; // begin and end logging with specific buttons
 unsigned long currentMillis = 0; // time variables for logging and or graphing
 unsigned long previousMillis = 0;
-unsigned long interval = 1000; // interval in ms for plotting and data saving on sd
+unsigned long interval = 1000; // interval in ms for plotting and data saving on SD
 
-// Thermoelement Breakout Board SPI Chip Selects:
+// Thermoelement Breakout Boards:
 Adafruit_MAX31856 T_specimen = Adafruit_MAX31856(MAX_SPEC_CS);
 Adafruit_MAX31856 T_loop = Adafruit_MAX31856(MAX_LOOP_CS);
 double current_T_loop;
@@ -110,18 +100,6 @@ byte heatsign[8] = {
   0b00110, //   **
   0b11111  // *****
 };
-
-// Touchscreen Definitions:
-//#define TS_MINX 150
-//#define TS_MINY 120
-//#define TS_MAXX 920
-//#define TS_MAXY 940
-//#define MINPRESSURE 5
-//#define MAXPRESSURE 1000
-// For better pressure precision, we need to know the resistance
-// between X+ and X- Use any multimeter to read it
-// For the one we're using, its 300 ohms across the X plate
-//TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
 
 // Color Definitions to chose from for both displays:
 #define LTBLUE    0xB6DF
@@ -164,22 +142,19 @@ byte heatsign[8] = {
 
 // LCD Touch Display:
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
-boolean display1 = true;  //  redraw coordinate system on new screen?
+boolean display1 = true;  //  variable for multiple screens within graphing function
 double ox , oy, oy2 ; // base values for incremental line drawing within the graph
 
 // diagram argument list, define plot style here:
 double  y, y2; // initialize x, y and y2
 int x = 0 ; // seconds as x values combine with long from logging sd card
-//int s = 0; 
 int xrange = 60; // range of x values on one screen
 int gx = 40; // x graph base location (lower left corner) relative to upper left corner of display
 int gy = 210; // y graph base location (lower left corner) relative to upper left corner of display
 int w = 250; // width of graph
 int h = 200; // height of graph
-int xcapright = x + xrange; // stores previous x bounds
-//int xcapright = s + xrange; // stores previous x bounds
+int xcapright = x + xrange; // stores previous x boundaries
 int xcapleft = x; // stores previous x bounds, start with 0
-//int xcapleft = s; // stores previous x bounds, start with 0
 int xinc = 10; // division of x axis
 int ylo = -100; // lower bound of y axis
 int yhi = 20; // upper bound of y axis
@@ -191,18 +166,17 @@ String yname1 = "loop"; // data name  1 for diagram legend
 String yname2 = "specimen"; // data name 2 for diagram legend
 unsigned int gcolor = RED; // graph background color
 unsigned int acolor = RED; // axis line color
-unsigned int pcolor1 = GREEN; // y plot color same as legend
-unsigned int pcolor2 = CYAN; // y2 plot color same as legend
+unsigned int pcolor1 = GREEN; // y plot and legend color
+unsigned int pcolor2 = CYAN; // y2 plot and legend color
 unsigned int tcolor = WHITE; // text color
 unsigned int bcolor = BLACK; // background color text boxes
 
 // Relais:
-bool heating_glass_active = false;
+bool heating_glass_active = false;  //  initially off
 
 // NeoPixel Ring:
 #define NUMPIXELS 24  // number of pixels in ring
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800);
-
 
 
 // Setup =======================================================================
@@ -235,36 +209,32 @@ void setup() {
   tft.fillScreen(BLACK);
 
   // I/O Pin Definitions:
-  // Demo Sensors, replace with MAX values!!!!!!!!!!
- // pinMode(INPUT1, INPUT);
- // pinMode(INPUT2, INPUT);
   pinMode(RELAIS_PIN_GLASS, OUTPUT);
-//  pinMode(RELAIS_PIN_CIRCUIT, OUTPUT);
 
   // Neopixel Ring:
   ring.begin(); // initializes NeoPixel
   ring.show();  // sets all pixel to off at start
-//  startup_demo(); // small startup demo to show connection
 
   // LCD Shield with Buttons:
   lcd.begin(16, 2);
   lcd.setBacklight(TEAL);
-  // Create byte for custom character
+  // Create byte for custom character, active heating glass
   lcd.createChar(0, heatsign);
 
   // Max Breakout Boards:
   T_specimen.begin();
   T_loop.begin();
   T_specimen.setThermocoupleType(MAX31856_TCTYPE_K);
-  T_loop.setThermocoupleType(MAX31856_TCTYPE_K);
-
-  
+  T_loop.setThermocoupleType(MAX31856_TCTYPE_K);  
 }
 
 
 // Loop ========================================================================
 void loop() {
-
+  // Perform logging and or graphing every given interval e.g. each second
+  // keep on graphing every interval no matter what, refresh screen and begin with 0s when logging is started by button interface
+  // start logging only when selected
+  
   // Button Interface:
   uint8_t buttons = lcd.readButtons();  // value for specific button see .h file
   if (buttons) {
@@ -286,18 +256,18 @@ void loop() {
         digitalWrite(RELAIS_PIN_GLASS, LOW);
         lcd.print("heating off");
         delay(500);  // delay for user visibility
-        lcd.clear();  // remove heat signs again with whole wipe
+        lcd.clear();  // remove heat signs again with complete wipe
       }
     }
     if (buttons & BUTTON_LEFT) {  // start logging
       log_active = true;
       tft.fillScreen(BLACK);
       display1 = true; // redraw and create new graph at start of logging
-      // set time and time borders back to start: x s xcapright xcapleft
+      // set time and time boundaries back to start: x, xcapright, xcapleft
       x = 0;
       xcapleft = x;
       xcapright = x + xrange;
-      lcd.print("logging       ");
+      lcd.print("logging       ");  // 14 out of 16x2 char display, keep heating sign at pos. 15,16
       delay(500);  // delay for user visibility
       lcd.setCursor(0, 0); // remove message
       lcd.print("       ");
@@ -324,12 +294,6 @@ void loop() {
       lcd.print("       ");
     }
   }
-
-
-// Perform logging and or graphing every given interval e.g.each second
-// keep on graphing every second no matter what, refresh screen and begin with 0s when logging starts see button section
-// start logging only when selected
-
   
   currentMillis = millis(); // millis() returns an unsigned long!
     if (currentMillis - previousMillis >= interval) {
@@ -341,8 +305,8 @@ void loop() {
     // for small enough t_offset just add 1 to time variable, this also allows to start from 0s at logging start
     x += interval/1000; // rough method
     
-    // permanent graphing on touch and displaying current temp on lcd at given interval
-    // read each thermocouple just once due to conversion times and use variable for later actions, overwrite within each interval
+    // permanent graphing on touch display and displaying current temp on lcd display at given interval
+    // read each thermocouple just once due to conversion times (~10E2 ms each) and use variable for later actions, overwrite within each interval
     current_T_loop = T_loop.readThermocoupleTemperature();
     current_T_specimen = T_specimen.readThermocoupleTemperature();
 
@@ -358,11 +322,9 @@ void loop() {
     // Graph plotting on touch display:
     y = current_T_loop;
     y2 = current_T_specimen;
-    //Serial.println(y);
-    //Serial.println(y2);
 
     /* remaining arguments for graph function:
-      tft = name of display object
+      tft = name of display object, here touch display
       x = x data point
       y = y data point
       y2 = y2 data point
@@ -370,8 +332,7 @@ void loop() {
     */
     Graph(tft, x, y, y2, gx, gy, w, h, xcapleft, xcapright, xinc, ylo, yhi, yinc, title, xlabel, ylabel, yname1, yname2, gcolor, acolor, pcolor1, pcolor2, tcolor, bcolor, display1);
 
-    if (x == xcapright) { // overwrite x axis bounds for new screen labelling:
-      //s = s + xrange;
+    if (x == xcapright) { // overwrite x axis boundaries for new screen y-axis labeling:
       xcapright = xcapright + xrange;
       xcapleft = xcapleft + xrange;
       tft.fillScreen(BLACK);
@@ -380,7 +341,7 @@ void loop() {
 
     // SD Logging:  
     if (log_active == true) {
-      // make a string for assembling the data to log, overwrite String with each loop
+      // make a string for assembling the data to log, overwrite String within each loop cycle
       String dataString = "";
       dataString += String(x); // x stores current seconds
       dataString += ",";
@@ -388,12 +349,11 @@ void loop() {
       dataString += ",";
       dataString += String(current_T_loop);
 
-      // automatic filenames see example scetch sdfat lib
-    
       // open the file. note that only one file can be open at a time,
       // so you have to close this one before opening another.
       // open creates new file or opens a prexisiting one
-      dataFile = SD.open("test.txt", FILE_WRITE); // argument FILE_WRITE makes it writable and readable
+      dataFile = SD.open("data.txt", FILE_WRITE); // argument FILE_WRITE makes it writable and readable
+      // so far always writes everything in single file, different logs start with new second count
       // if the file is available, write to it:
       if (dataFile) {
         dataFile.println(dataString);
@@ -410,17 +370,11 @@ void loop() {
 }
     
 
-
 // Functions ============================================================
-// Graph Plotting
+// Graph Plotting [https://www.youtube.com/watch?v=YejRbIKe6e0]
 void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int w, int h, int xlo, int xhi, int xinc, int ylo, int yhi, int yinc, String title, String xlabel, String ylabel, String yname1, String yname2, unsigned int gcolor, unsigned int acolor, unsigned int pcolor1, unsigned int pcolor2, unsigned int tcolor, unsigned int bcolor, boolean &redraw) {
 
   double ydiv, xdiv;
-  // initialize old x and old y in order to draw the first point of the graph
-  // but save the transformed value
-  // note my transform funcition is the same as the map function, except the map uses long and we need doubles
-  //static double ox = (x - xlo) * ( w) / (xhi - xlo) + gx;
-  //static double oy = (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
   double i;
   double temp;
   int rot, newrot;
@@ -455,7 +409,6 @@ void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int 
     for (i = xlo; i <= xhi; i += xinc) {
 
       // compute the transform
-
       temp =  (i - xlo) * ( w) / (xhi - xlo) + gx;
       if (i == 0) {
         d.drawLine(temp, gy, temp, gy - h, acolor);
@@ -498,12 +451,9 @@ void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int 
     d.setTextColor(pcolor2, bcolor);
     d.setCursor(gx + 200, gy - h - 10);
     d.println(yname2);
-
   }
 
   //graph drawn now plot the data
-  // the entire plotting code are these few lines...
-  // recall that ox and oy are initialized as static above ?????????????????? no they are not
   x =  (x - xlo) * ( w) / (xhi - xlo) + gx;
   y =  (y - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
   y2 = (y2 - ylo) * (gy - h - gy) / (yhi - ylo) + gy;
@@ -511,9 +461,8 @@ void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int 
   // broadens plot line
   //d.drawLine(ox, oy + 1, x, y + 1, pcolor1);
   //d.drawLine(ox, oy - 1, x, y - 1, pcolor1);
-
-  // broadens plot line
   d.drawLine(ox, oy2, x, y2, pcolor2);
+  // broadens plot line
   //d.drawLine(ox, oy2 + 1, x, y2 + 1, pcolor2);
   //d.drawLine(ox, oy2 - 1, x, y2 - 1, pcolor2);
   ox = x;
@@ -534,18 +483,4 @@ void led_off() {
     ring.show();  // send data to pixels
   }
 }
-
-/*
-void startup_demo() { // small startup demo to show connection
-  for (uint8_t i = 0; i < NUMPIXELS; i++) {
-    ring.setPixelColor(i, ring.Color(0, 0, 0, 255));
-    ring.show();  // send data to pixels
-    delay(50);
-  }
-  for (uint8_t i = 0; i < NUMPIXELS; i++) { //  shut off again
-    ring.setPixelColor(i, ring.Color(0, 0, 0, 0));
-    ring.show();  // send data to pixels
-  }
-}
-*/
 
