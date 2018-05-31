@@ -1,6 +1,6 @@
 <pre>
 <font color="#434f54">&#47;&#47; Libraries ============================</font>
-<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#d35400">Wire</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> <font color="#434f54">&#47;&#47; &nbsp;&nbsp;&nbsp;</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#d35400">Wire</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> &nbsp;&nbsp;
 
 <font color="#434f54">&#47;&#47; SD Lib:</font>
 <font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><b><font color="#d35400">SPI</font></b><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
@@ -14,9 +14,9 @@
 <font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">utility</font><font color="#434f54">&#47;</font><font color="#000000">Adafruit_MCP23017</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
 
 <font color="#434f54">&#47;&#47; LCD Touchscreen Breakout Board:</font>
-<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_GFX</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> <font color="#434f54">&#47;&#47; &nbsp;Core graphics library</font>
-<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_ILI9341</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; Driver chip display</font>
-<font color="#5e6d03">#include</font> <font color="#005c5f">&#34;TouchScreen.h&#34;</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;Resistive Touch Screen</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_GFX</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> <font color="#434f54">&#47;&#47; Core graphics library</font>
+<font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><font color="#000000">Adafruit_ILI9341</font><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font> <font color="#434f54">&#47;&#47; Driver chip display</font>
+<font color="#434f54">&#47;&#47;#include &#34;TouchScreen.h&#34; &#47;&#47; Resistive Touch Screen</font>
 
 <font color="#434f54">&#47;&#47; NeoPixel Ring:</font>
 <font color="#5e6d03">#include</font> <font color="#434f54">&lt;</font><b><font color="#d35400">Adafruit_NeoPixel</font></b><font color="#434f54">.</font><font color="#000000">h</font><font color="#434f54">&gt;</font>
@@ -48,10 +48,10 @@
 <font color="#95a5a6">*&#47;</font>
 
 <font color="#434f54">&#47;&#47; Resistive Touch:</font>
-<font color="#5e6d03">#define</font> <font color="#000000">YP</font> <font color="#000000">A0</font> <font color="#434f54">&#47;&#47; &nbsp;Y+ touch direction, requires analog pin: &#34;A&#34;</font>
-<font color="#5e6d03">#define</font> <font color="#000000">XM</font> <font color="#000000">A1</font> <font color="#434f54">&#47;&#47; &nbsp;X- touch direction, requires analog pin: &#34;A&#34;</font>
-<font color="#5e6d03">#define</font> <font color="#000000">YM</font> <font color="#000000">A2</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;Y- can be a digital pin</font>
-<font color="#5e6d03">#define</font> <font color="#000000">XP</font> <font color="#000000">A3</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;X+ can be a digital pin; equals DC, connect both to given pin!</font>
+<font color="#434f54">&#47;&#47;#define YP A0 &#47;&#47; &nbsp;Y+ touch direction, requires analog pin: &#34;A&#34;</font>
+<font color="#434f54">&#47;&#47;#define XM A1 &#47;&#47; &nbsp;X- touch direction, requires analog pin: &#34;A&#34;</font>
+<font color="#434f54">&#47;&#47;#define YM A2 &nbsp;&#47;&#47; &nbsp;Y- can be a digital pin</font>
+<font color="#434f54">&#47;&#47;#define XP A3 &nbsp;&#47;&#47; &nbsp;X+ can be a digital pin; equals DC, connect both to given pin!</font>
 <font color="#434f54">&#47;&#47; LCD Touch Display:</font>
 <font color="#5e6d03">#define</font> <font color="#000000">TFT_CS</font> <font color="#000000">43</font> <font color="#434f54">&#47;&#47; &nbsp;SPI Chip Select Display</font>
 <font color="#5e6d03">#define</font> <font color="#000000">TFT_DC</font> <font color="#000000">A3</font> &nbsp;<font color="#434f54">&#47;&#47; &nbsp;equals X+, connect both to given pin!</font>
@@ -102,7 +102,7 @@
  &nbsp;<font color="#000000">0b11111</font> &nbsp;<font color="#434f54">&#47;&#47; *****</font>
 <font color="#000000">}</font><font color="#000000">;</font>
 
-<font color="#434f54">&#47;&#47; Color Definitions to chose from for both displays:</font>
+<font color="#434f54">&#47;&#47; Color Definitions to choose from for both displays:</font>
 <font color="#5e6d03">#define</font> <font color="#000000">LTBLUE</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xB6DF</font>
 <font color="#5e6d03">#define</font> <font color="#000000">LTTEAL</font> &nbsp;&nbsp;&nbsp;<font color="#000000">0xBF5F</font>
 <font color="#5e6d03">#define</font> <font color="#000000">LTGREEN</font> &nbsp;&nbsp;<font color="#000000">0xBFF7</font>
@@ -180,7 +180,7 @@
 <b><font color="#d35400">Adafruit_NeoPixel</font></b> <font color="#000000">ring</font> <font color="#434f54">=</font> <b><font color="#d35400">Adafruit_NeoPixel</font></b><font color="#000000">(</font><font color="#000000">NUMPIXELS</font><font color="#434f54">,</font> <font color="#000000">PIN</font><font color="#434f54">,</font> <font color="#000000">NEO_GRBW</font> <font color="#434f54">+</font> <font color="#d35400">NEO_KHZ800</font><font color="#000000">)</font><font color="#000000">;</font>
 
 
-<font color="#434f54">&#47;&#47; Setup =======================================================================</font>
+<font color="#434f54">&#47;&#47; Setup ==========================================</font>
 <font color="#00979c">void</font> <font color="#5e6d03">setup</font><font color="#000000">(</font><font color="#000000">)</font> <font color="#000000">{</font>
  &nbsp;<font color="#434f54">&#47;&#47; LCD Touch Display:</font>
  &nbsp;<font color="#000000">tft</font><font color="#434f54">.</font><font color="#d35400">begin</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font>
@@ -230,10 +230,11 @@
 <font color="#000000">}</font>
 
 
-<font color="#434f54">&#47;&#47; Loop ========================================================================</font>
+<font color="#434f54">&#47;&#47; Loop ==================================================</font>
 <font color="#00979c">void</font> <font color="#5e6d03">loop</font><font color="#000000">(</font><font color="#000000">)</font> <font color="#000000">{</font>
  &nbsp;<font color="#434f54">&#47;&#47; Perform logging and or graphing every given interval e.g. each second</font>
- &nbsp;<font color="#434f54">&#47;&#47; keep on graphing every interval no matter what, refresh screen and begin with 0s when logging is started by button interface</font>
+ &nbsp;<font color="#434f54">&#47;&#47; keep on graphing every interval no matter what</font>
+ &nbsp;<font color="#434f54">&#47;&#47; refresh screen and begin with 0s when logging is started by button interface</font>
  &nbsp;<font color="#434f54">&#47;&#47; start logging only when selected</font>
  &nbsp;
  &nbsp;<font color="#434f54">&#47;&#47; Button Interface:</font>
@@ -298,12 +299,11 @@
  &nbsp;
  &nbsp;<font color="#000000">currentMillis</font> <font color="#434f54">=</font> <font color="#d35400">millis</font><font color="#000000">(</font><font color="#000000">)</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; millis() returns an unsigned long!</font>
  &nbsp;&nbsp;&nbsp;<font color="#5e6d03">if</font> <font color="#000000">(</font><font color="#000000">currentMillis</font> <font color="#434f54">-</font> <font color="#000000">previousMillis</font> <font color="#434f54">&gt;=</font> <font color="#000000">interval</font><font color="#000000">)</font> <font color="#000000">{</font>
- &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; &nbsp;currentMillis = millis();</font>
  &nbsp;&nbsp;&nbsp;<font color="#00979c">unsigned</font> <font color="#00979c">long</font> <font color="#000000">t_offset</font> <font color="#434f54">=</font> <font color="#000000">currentMillis</font> <font color="#434f54">-</font> <font color="#000000">previousMillis</font> <font color="#434f54">-</font> <font color="#000000">interval</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; check for time offset if other tasks take too long to execute</font>
  &nbsp;&nbsp;&nbsp;<b><font color="#d35400">Serial</font></b><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#005c5f">&#34;time offset from interval in ms&#34;</font><font color="#000000">)</font><font color="#000000">;</font>
  &nbsp;&nbsp;&nbsp;<b><font color="#d35400">Serial</font></b><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#000000">t_offset</font><font color="#000000">)</font><font color="#000000">;</font>
  &nbsp;&nbsp;&nbsp;<font color="#000000">previousMillis</font> <font color="#434f54">=</font> <font color="#000000">currentMillis</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; immedeately overwrite variable</font>
- &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; for small enough t_offset just add 1 to time variable, this also allows to start from 0s at logging start</font>
+ &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; for small enough t_offset just add interval to time variable, this also allows to start from 0s at logging start</font>
  &nbsp;&nbsp;&nbsp;<font color="#000000">x</font> <font color="#434f54">+=</font> <font color="#000000">interval</font><font color="#434f54">&#47;</font><font color="#000000">1000</font><font color="#000000">;</font> <font color="#434f54">&#47;&#47; rough method</font>
  &nbsp;&nbsp;&nbsp;
  &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; permanent graphing on touch display and displaying current temp on lcd display at given interval</font>
@@ -401,10 +401,7 @@
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">tcolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">gx</font> <font color="#434f54">-</font> <font color="#000000">40</font><font color="#434f54">,</font> <font color="#000000">temp</font><font color="#000000">)</font><font color="#000000">;</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; precision is default Arduino--this could really use some format control</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; round for °C here</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#00979c">int</font><font color="#000000">(</font><font color="#000000">i</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; d.println(i);</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#00979c">int</font><font color="#000000">(</font><font color="#000000">i</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; round temps in °C here</font>
  &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
  &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; draw x scale</font>
  &nbsp;&nbsp;&nbsp;<font color="#5e6d03">for</font> <font color="#000000">(</font><font color="#000000">i</font> <font color="#434f54">=</font> <font color="#000000">xlo</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">&lt;=</font> <font color="#000000">xhi</font><font color="#000000">;</font> <font color="#000000">i</font> <font color="#434f54">+=</font> <font color="#000000">xinc</font><font color="#000000">)</font> <font color="#000000">{</font>
@@ -421,10 +418,7 @@
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextSize</font><font color="#000000">(</font><font color="#000000">1</font><font color="#000000">)</font><font color="#000000">;</font>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#000000">setTextColor</font><font color="#000000">(</font><font color="#000000">tcolor</font><font color="#434f54">,</font> <font color="#000000">bcolor</font><font color="#000000">)</font><font color="#000000">;</font>
  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">setCursor</font><font color="#000000">(</font><font color="#000000">temp</font><font color="#434f54">,</font> <font color="#000000">gy</font> <font color="#434f54">+</font> <font color="#000000">10</font><font color="#000000">)</font><font color="#000000">;</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; precision is default Arduino--this could really use some format control</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; round for seconds here</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#00979c">int</font><font color="#000000">(</font><font color="#000000">i</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font>
- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47; d.println(i);</font>
+ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000000">d</font><font color="#434f54">.</font><font color="#d35400">println</font><font color="#000000">(</font><font color="#00979c">int</font><font color="#000000">(</font><font color="#000000">i</font><font color="#000000">)</font><font color="#000000">)</font><font color="#000000">;</font> &nbsp;<font color="#434f54">&#47;&#47; round temps in °C here</font>
  &nbsp;&nbsp;&nbsp;<font color="#000000">}</font>
 
  &nbsp;&nbsp;&nbsp;<font color="#434f54">&#47;&#47;now draw the labels</font>

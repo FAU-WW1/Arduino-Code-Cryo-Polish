@@ -1,5 +1,5 @@
 // Libraries ============================
-#include <Wire.h> //    
+#include <Wire.h>   
 
 // SD Lib:
 #include <SPI.h>
@@ -13,9 +13,9 @@
 #include <utility/Adafruit_MCP23017.h>
 
 // LCD Touchscreen Breakout Board:
-#include <Adafruit_GFX.h> //  Core graphics library
-#include <Adafruit_ILI9341.h>    // Driver chip display
-#include "TouchScreen.h"  //  Resistive Touch Screen
+#include <Adafruit_GFX.h> // Core graphics library
+#include <Adafruit_ILI9341.h> // Driver chip display
+//#include "TouchScreen.h" // Resistive Touch Screen
 
 // NeoPixel Ring:
 #include <Adafruit_NeoPixel.h>
@@ -47,10 +47,10 @@
 */
 
 // Resistive Touch:
-#define YP A0 //  Y+ touch direction, requires analog pin: "A"
-#define XM A1 //  X- touch direction, requires analog pin: "A"
-#define YM A2  //  Y- can be a digital pin
-#define XP A3  //  X+ can be a digital pin; equals DC, connect both to given pin!
+//#define YP A0 //  Y+ touch direction, requires analog pin: "A"
+//#define XM A1 //  X- touch direction, requires analog pin: "A"
+//#define YM A2  //  Y- can be a digital pin
+//#define XP A3  //  X+ can be a digital pin; equals DC, connect both to given pin!
 // LCD Touch Display:
 #define TFT_CS 43 //  SPI Chip Select Display
 #define TFT_DC A3  //  equals X+, connect both to given pin!
@@ -101,7 +101,7 @@ byte heatsign[8] = {
   0b11111  // *****
 };
 
-// Color Definitions to chose from for both displays:
+// Color Definitions to choose from for both displays:
 #define LTBLUE    0xB6DF
 #define LTTEAL    0xBF5F
 #define LTGREEN   0xBFF7
@@ -179,7 +179,7 @@ bool heating_glass_active = false;  //  initially off
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRBW + NEO_KHZ800);
 
 
-// Setup =======================================================================
+// Setup ==========================================
 void setup() {
   // LCD Touch Display:
   tft.begin();
@@ -229,10 +229,11 @@ void setup() {
 }
 
 
-// Loop ========================================================================
+// Loop ==================================================
 void loop() {
   // Perform logging and or graphing every given interval e.g. each second
-  // keep on graphing every interval no matter what, refresh screen and begin with 0s when logging is started by button interface
+  // keep on graphing every interval no matter what
+  // refresh screen and begin with 0s when logging is started by button interface
   // start logging only when selected
   
   // Button Interface:
@@ -297,12 +298,11 @@ void loop() {
   
   currentMillis = millis(); // millis() returns an unsigned long!
     if (currentMillis - previousMillis >= interval) {
-    //  currentMillis = millis();
     unsigned long t_offset = currentMillis - previousMillis - interval; // check for time offset if other tasks take too long to execute
     Serial.println("time offset from interval in ms");
     Serial.println(t_offset);
     previousMillis = currentMillis; // immedeately overwrite variable
-    // for small enough t_offset just add 1 to time variable, this also allows to start from 0s at logging start
+    // for small enough t_offset just add interval to time variable, this also allows to start from 0s at logging start
     x += interval/1000; // rough method
     
     // permanent graphing on touch display and displaying current temp on lcd display at given interval
@@ -400,10 +400,7 @@ void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int 
       d.setTextSize(1);
       d.setTextColor(tcolor, bcolor);
       d.setCursor(gx - 40, temp);
-      // precision is default Arduino--this could really use some format control
-      // round for °C here
-      d.println(int(i));
-      // d.println(i);
+      d.println(int(i));  // round temps in °C here
     }
     // draw x scale
     for (i = xlo; i <= xhi; i += xinc) {
@@ -420,10 +417,7 @@ void Graph(Adafruit_ILI9341 &d, int x, double y, double y2, int gx, int gy, int 
       d.setTextSize(1);
       d.setTextColor(tcolor, bcolor);
       d.setCursor(temp, gy + 10);
-      // precision is default Arduino--this could really use some format control
-      // round for seconds here
-      d.println(int(i));
-      // d.println(i);
+      d.println(int(i));  // round temps in °C here
     }
 
     //now draw the labels
